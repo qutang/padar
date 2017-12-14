@@ -13,15 +13,18 @@ def main(ctx, root, pid):
     """
     ctx.obj={}
     ctx.obj['PID'] = pid
-    ctx.obj['M'] = M(root)
+    if root:
+        ctx.obj['M'] = M(root)
+    else:
+        ctx.obj['M'] = None
     
 @click.command()
-@click.argument('info')
+@click.argument('info', type=click.Choice(['participants', 'annotators', 'sensors']))
 @click.pass_context
 def list(ctx, info):
     """[summary]
     
-    [description]
+    Without PID, it supports: participants|annotators|sensors; with PID, it supports: annotators|sensors
     
     Decorators:
         click
@@ -51,13 +54,13 @@ def list(ctx, info):
             click.echo(info + ' not supported', err=True)
 
 @click.command()
-@click.argument('info')
-@click.option('--by', '-b', default='all', type=click.Choice(['all', 'each', 'day', 'hour']), help='Specify how to summarize size. It will be ignored if pid is not provided.')
+@click.argument('info', type=click.Choice(['participants', 'annotators', 'sensors', 'all']))
+@click.option('--by', '-b', default='all', type=click.Choice(['all', 'each', 'day', 'hour']), help = 'Specify how to summarize size. It will be ignored if pid is not provided.')
 @click.pass_context
 def size(ctx, info, by):
     """[summary]
     
-    [description]
+    Without PID, INFO supports: participants|annotators|sensors; with PID, it supports: annotators|sensors|all
     
     Decorators:
         click
@@ -131,8 +134,11 @@ def size(ctx, info, by):
             if by == 'day' or by == 'hour':
                 click.echo(result.to_csv(index=False, float_format='%.3f'))
         elif info == 'all':
-            total_size = m.folder_size(p) / 1024 / 1024.0
-            click.echo('%s,%.3f' % (p, total_size))
+            if by == 'all':
+                total_size = m.folder_size(p) / 1024 / 1024.0
+                click.echo('%s,%.3f' % (p, total_size))
+            else:
+                click.echo('by: ' + by + " is not supported when info is all")
         else:
             click.echo(info + ' not supported', err=True)
             
