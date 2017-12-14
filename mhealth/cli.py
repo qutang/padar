@@ -54,13 +54,13 @@ def list(ctx, info):
             click.echo(info + ' not supported', err=True)
 
 @click.command()
-@click.argument('info', type=click.Choice(['participants', 'annotators', 'sensors', 'all']))
+@click.argument('info', type=click.Choice(['annotators', 'sensors', 'all']))
 @click.option('--by', '-b', default='all', type=click.Choice(['all', 'each', 'day', 'hour']), help = 'Specify how to summarize size. It will be ignored if pid is not provided.')
 @click.pass_context
 def size(ctx, info, by):
     """[summary]
     
-    Without PID, INFO supports: participants|annotators|sensors; with PID, it supports: annotators|sensors|all
+    INFO supports: annotators|sensors|all
     
     Decorators:
         click
@@ -68,18 +68,32 @@ def size(ctx, info, by):
     m = ctx.obj['M']
     p = ctx.obj['PID']
     if not ctx.obj['PID']:
-        if info == 'participants':
-            for p in m.participants:
-                total_size = m.folder_size(p) / 1024/ 1024.0
-                click.echo('%s,%.3f' % (p, total_size))
+        if info == 'all':
+            if by == 'each':
+                for p in m.participants:
+                    total_size = m.folder_size(p) / 1024/ 1024.0
+                    click.echo('%s,%.3f' % (p, total_size))
+            elif by == 'all':
+                all_size = 0
+                for p in m.participants:
+                    total_size = m.folder_size(p) / 1024/ 1024.0
+                    all_size = all_size + total_size
+                click.echo('%s,%.3f' % ('All participants', all_size))
         elif info =='annotators':
             for a in m.annotators(""):
                 total_size = m.total_size('**/*' + a + '*.annotation.csv') / 1024 / 1024.0
                 click.echo('%s,%.3f' % (a, total_size))
         elif info == 'sensors':
-            for s in m.sensors(""):
-                total_size = m.total_size('**/*' + s + '*.sensor.csv') / 1024 / 1024.0
-                click.echo('%s,%.3f' % (s, total_size))
+            if by == 'each':
+                for s in m.sensors(""):
+                    total_size = m.total_size('**/*' + s + '*.sensor.csv') / 1024 / 1024.0
+                    click.echo('%s,%.3f' % (s, total_size))
+            elif by == 'all':
+                all_size = 0
+                for s in m.sensors(""):
+                    total_size = m.total_size('**/*' + s + '*.sensor.csv') / 1024 / 1024.0
+                    all_size = all_size + total_size
+                click.echo('%s,%.3f' % ('All participants', all_size))
         else:
             click.echo(info + ' not supported', err=True)
     else:
