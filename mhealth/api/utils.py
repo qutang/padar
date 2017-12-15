@@ -9,17 +9,20 @@ def file_lines(file):
 	f.close()
 	return lines
 
-def extract_file_type(file):
-    return os.path.basename(file).split('.')[3].lower().strip()
+def extract_file_type(abspath):
+    return os.path.basename(abspath).split('.')[3].lower().strip()
 
-def extract_date(file):
-        return re.search('[0-9]{4}-[0-9]{2}-[0-9]{2}', os.path.basename(file).split('.')[2]).group(0)
+def extract_date(abspath):
+        return re.search('[0-9]{4}-[0-9]{2}-[0-9]{2}', os.path.basename(abspath).split('.')[2]).group(0)
 
-def extract_hour(file):
-	return re.search('[0-9]{4}-[0-9]{2}-[0-9]{2}-([0-9]{2})', os.path.basename(file).split('.')[2]).group(1)
+def extract_hour(abspath):
+	return re.search('[0-9]{4}-[0-9]{2}-[0-9]{2}-([0-9]{2})', os.path.basename(abspath).split('.')[2]).group(1)
 
-def extract_id(sensor_file):
-	return os.path.basename(sensor_file).split('.')[1].split('-')[0].upper().strip()
+def extract_id(abspath):
+	return os.path.basename(abspath).split('.')[1].split('-')[0].upper().strip()
+
+def extract_pid(abspath):
+	return os.path.basename(os.path.dirname(abspath.split('MasterSynced')[0]))
 
 def sampling_rate(file):
 	df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
@@ -46,14 +49,14 @@ def sensor_stat(file):
 		return pd.DataFrame(result, index=[0])
 	try:
 		df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
-		result['lines'] = df.shape[0]
+		result['lines'] = int(df.shape[0])
 		result['sr'] = _sampling_rate(df)
 		max_value = np.amax(df.values[:,1:])
 		result['max_g'] = max_value
 		min_value = np.amin(df.values[:,1:])
 		result['min_g'] = min_value
-		result['max_g_count'] = np.sum(df.values[:,1:].flatten() == max_value)
-		result['min_g_count'] = np.sum(df.values[:,1:].flatten() == min_value)
+		result['max_g_count'] = int(np.sum(df.values[:,1:].flatten() == max_value))
+		result['min_g_count'] = int(np.sum(df.values[:,1:].flatten() == min_value))
 	except TypeError:
 		for key in result:
 			if np.isnan(result[key]):

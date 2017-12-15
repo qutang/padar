@@ -10,7 +10,8 @@ setup(
         'Click',
         'jinja2',
         'pweave',
-        'pandas'
+        'pandas',
+        'pathos'
     ],
     entry_points='''
         [console_scripts]
