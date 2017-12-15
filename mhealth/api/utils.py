@@ -28,6 +28,22 @@ def sampling_rate(file):
 	df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
 	return _sampling_rate(df)
 
+def clip(file, start_time=None, stop_time=None):
+	df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
+	return _clip(df, start_time, stop_time)
+
+def _clip(df, start_time=None, stop_time=None):
+	if start_time is None:
+		start_time = df.iloc[0, 0].to_datetime64().astype('datetime64[ms]')
+	if stop_time is None:
+		stop_time = df.iloc[df.shape[0]-1, 0].to_datetime64().astype('datetime64[ms]')
+
+	if type(start_time) is not np.datetime64 or type(stop_time) is not np.datetime64:
+		raise ValueError('start_time or stop_time should be in numpy datetime64[ms] format')
+
+	clipped = df.loc[(df.iloc[:,0] >= start_time) & (df.iloc[:, 0] < stop_time),:]
+	return clipped
+
 def _sampling_rate(df):
 	ts = df.set_index(df.columns[0])
 	minute_counts = ts.groupby(pd.TimeGrouper(freq='Min'))[df.columns[1]].count().values

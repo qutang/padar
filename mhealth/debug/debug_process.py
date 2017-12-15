@@ -2,19 +2,12 @@
 import os
 import pandas as pd
 from mhealth.api import M
-
-def count_lines(file, verbose=True, **kwargs):
-    path = os.path.abspath(file)
-    f = open(path, 'rb')
-    lines = sum(1 for line in f)
-    f.close()
-    # print(str(kwargs['a']) + " - " + path + ": " + str(lines))
-    return pd.DataFrame(data={'path': path, 'lines': lines}, index=[0])
+import mhealth.scripts as scripts
 
 def main():
     root = 'F:/data/spades_lab'
 
-    test = M(root).process(rel_pattern = "SPADES_1/MasterSynced/**/*.sensor.csv*", func=count_lines, use_parallel=True, verbose=True, concat=True, a=3)
+    test = M(root).process(rel_pattern = "SPADES_1/MasterSynced/**/*.sensor.csv*", func=scripts.clipper.main, use_parallel=True, verbose=True, start_time="2015-09-24 14:30:00.000", stop_time="2015-09-24 14:40:00.000")
 
     print(test)
 

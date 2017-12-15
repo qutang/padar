@@ -59,10 +59,13 @@ def process(ctx, script, pattern):
         And it should return a pandas dataframe, which should be identifiable (by adding idenfier column) after merging with other matched files
     """
     # parse input args
-    kwargs = {ctx.args[i][2:]: ctx.args[i+1] for i in range(0, len(ctx.args), 2)}
-    script_path = os.path.abspath(script)
-    sys.path.insert(0, os.path.dirname(script_path))
-    script_module = importlib.import_module(os.path.splitext(script)[0])
+    kwargs = {ctx.args[i][2:]: ctx.args[i+1].strip('"') for i in range(0, len(ctx.args), 2)}
+    if script.endswith('.py'):
+        script_path = os.path.abspath(script)
+        sys.path.insert(0, os.path.dirname(script_path))
+        script_module = importlib.import_module(os.path.splitext(os.path.basename(script))[0])
+    else:
+        script_module = importlib.import_module('mhealth.scripts.' + script)
     func = script_module.main
     pattern.strip("'").strip('"')
     rel_pattern = ""
@@ -73,7 +76,8 @@ def process(ctx, script, pattern):
     m = ctx.obj['M']
     result = m.process(rel_pattern, func, use_parallel=True, verbose=False, **kwargs)
     click.echo(result.to_csv(sep=',', index=False))
-    sys.path.remove(os.path.dirname(script_path))
+    if script.endswith('.py'):
+        sys.path.remove(os.path.dirname(script_path))
 
 main.add_command(summary)
 main.add_command(process)
