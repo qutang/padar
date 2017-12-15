@@ -44,13 +44,21 @@ def sensor_stat(file):
 		}
 	if file_type != 'sensor':
 		return pd.DataFrame(result, index=[0])
-	df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
-	result['lines'] = df.shape[0]
-	result['sr'] = _sampling_rate(df)
-	max_value = np.amax(df.values[:,1:])
-	result['max_g'] = max_value
-	min_value = np.amin(df.values[:,1:])
-	result['min_g'] = min_value
-	result['max_g_count'] = np.sum(df.values[:,1:].flatten() == max_value)
-	result['min_g_count'] = np.sum(df.values[:,1:].flatten() == min_value)
+	try:
+		df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
+		result['lines'] = df.shape[0]
+		result['sr'] = _sampling_rate(df)
+		max_value = np.amax(df.values[:,1:])
+		result['max_g'] = max_value
+		min_value = np.amin(df.values[:,1:])
+		result['min_g'] = min_value
+		result['max_g_count'] = np.sum(df.values[:,1:].flatten() == max_value)
+		result['min_g_count'] = np.sum(df.values[:,1:].flatten() == min_value)
+	except TypeError:
+		for key in result:
+			if np.isnan(result[key]):
+				result[key] = 'TypeError'
+	except pd.errors.ParserError:
+		for key in result:
+			result[key] = 'ParserError'
 	return pd.DataFrame(result, index=[0])

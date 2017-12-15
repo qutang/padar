@@ -3,10 +3,10 @@ import glob
 import re
 import pandas as pd
 import numpy as np
-from .utils import *
 from pathos.multiprocessing import ProcessingPool as Pool
 from multiprocessing import cpu_count
 from functools import partial
+from .utils import *
 
 class M:
     """[summary]
@@ -23,12 +23,18 @@ class M:
         self._num_of_cpu = cpu_count()
 
     def summarize(self, use_parallel=False, verbose=False):
+        if use_parallel:
+            self._pool = Pool(self._num_of_cpu)
         result = self.scan(self._summary_funcs, use_parallel=use_parallel, verbose=verbose)
+        self._pool.close()
         self._summary = result
         return self
 
     def summarize_partial(self, rel_path, use_parallel=False, verbose=False):
+        if use_parallel:
+            self._pool = Pool(self._num_of_cpu)
         result = self._scan_use_glob(os.path.join(self._root, rel_path), self._summary_funcs, use_parallel=use_parallel, verbose=verbose)
+        self._pool.close()
         # result = self._scan(os.path.join(self._root, rel_path), self._summary_funcs, verbose=verbose)
         result.insert(0, 'path', rel_path)
         result = result.sort_values(by = ['path', 'id', 'type', 'date', 'hour']).reset_index(drop=True)
@@ -39,7 +45,7 @@ class M:
         for p in self.participants:
             if verbose:
                 print('processing ' + p)
-            p_df = self._scan_use_glob(self._root + '/' + p, func_dict, use_parallel=use_parallel, verbose=verbose)
+            p_df = self._scan_use_glob(self._root + '/' + p + '/MasterSynced', func_dict, use_parallel=use_parallel, verbose=verbose)
             # p_df = self._scan(self._root + '/' + p, func_dict, verbose=verbose)
             p_df.insert(0, 'pid', p)
             df = df.append(p_df, ignore_index=True)
@@ -75,10 +81,8 @@ class M:
         entry_files = glob.glob(os.path.join(folder, '**', '*.csv*'),recursive=True)
         # TODO: parallel version
         if use_parallel:
-            pool = Pool(self._num_of_cpu)
             # _process_file_partial = partial(_process_file, verbose)
-            df = pd.concat(pool.map(self._process_file, entry_files, [func_dict] * len(entry_files)))
-            pool.close()
+            df = pd.concat(self._pool.map(self._process_file, entry_files, [func_dict] * len(entry_files)))
         else:
             df = pd.DataFrame()
             for file in entry_files:
