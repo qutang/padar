@@ -1,5 +1,5 @@
 """
-Script to run on a sensor data file for clipping
+Script to run on a sensor data file to find static chunks for calibration
 """
 
 import os

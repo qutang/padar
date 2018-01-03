@@ -4,7 +4,7 @@ from ..numeric_transformation import vector_magnitude, accelerometer_orientation
 from ..windowing import get_sliding_window_boundaries
 import numpy as np
 import pandas as pd
-from .calibraxis import Calibraxis
+from ._calibraxis import Calibraxis
 from ..utils import _clip
 
 class Calibrator():
@@ -24,6 +24,10 @@ class Calibrator():
 	@property
 	def static(self):
 		return self._calibration_chunks
+
+	def set_static(self, static_chunks):
+		self._calibration_chunks = static_chunks
+		return self
 
 	def find(self):
 		df = self._data
@@ -47,8 +51,8 @@ class Calibrator():
 				chunk_mean = np.mean(chunk_values, axis=0)
 				chunk_orientation = np.rad2deg(accelerometer_orientation(chunk_mean))
 				if self._is_different_orientation(chunk_orientation, calibration_chunks_orientations):
-					chunk['WINDOW_ID'] = i
-					chunk['COUNT'] = count
+					chunk.insert(3, 'WINDOW_ID', i)
+					chunk.insert(4, 'COUNT', count)
 					calibration_chunks.append(chunk)
 					calibration_chunks_orientations.append(chunk_orientation)
 					count = count + 1
@@ -65,21 +69,27 @@ class Calibrator():
 		return self
 
 	def run(self, verbose=False):
+		df = self._data
 		if len(self._calibration_chunks) == 0:
 			calibrated_df = df.copy(deep=True)
 			self._calibrated_data = calibrated_df
 			return self
 
 		# get mean values of each calibration chunks
-		calibration_points = self._calibration_chunks.groupby(['WINDOW_ID', 'COUNT']).mean()
-
+		if 'date' in self._calibration_chunks.columns:
+			calibration_points = self._calibration_chunks.groupby(['WINDOW_ID', 'COUNT', 'date', 'hour']).mean()
+		else:
+			calibration_points = self._calibration_chunks.groupby(['WINDOW_ID', 'COUNT']).mean()
 		# run calibration algorithm
-		calibrator = Calibraxis(verbose=verbose)
+		calibrator = Calibraxis(verbose=False)
 		calibrator.add_points(calibration_points.values)
 		calibrator.calibrate_accelerometer()
 
 		if(calibrator.scale_factor_matrix is None):
-			raise ValueError("Calibration fails, provided calibration points cannot converge")
+			print("Calibration fails, provided calibration points cannot converge")
+			print("Use original data")
+			self._calibrated_data = df
+			return self
 
 		calibrated_df_list = calibrator.batch_apply(df.values[:,1:])
 

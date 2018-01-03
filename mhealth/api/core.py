@@ -17,8 +17,9 @@ class M:
     def __init__(self, root):
         self._root = str.strip(root)
         self._summary_funcs = {
-            'file_size': lambda x: os.path.getsize(x) / 1024 / 1024.0,
-            'sensor_stat': sensor_stat
+            'file_size': lambda x: os.path.getsize(x) / 1024.0,
+            # 'exists': lambda x: os.path.exists(x)
+            # 'sensor_stat': sensor_stat
         }
         self._num_of_cpu = cpu_count()
 
