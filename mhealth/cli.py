@@ -37,7 +37,7 @@ def summary(ctx):
     if ctx.obj['PID']:
         rel_path = os.path.join(ctx.obj['PID'], 'MasterSynced')
     m = ctx.obj['M']
-    result = m.summarize(rel_path, use_parallel=True, verbose=True)
+    result = m.summarize(rel_path, use_parallel=False, verbose=False)
     click.echo(result.to_csv(sep=',', index=False, float_format='%.3f'))
 
 @click.command(context_settings=dict(
@@ -45,9 +45,11 @@ def summary(ctx):
     allow_extra_args=True
 ))
 @click.argument('script')
-@click.option('--pattern', help='Regular expression pattern to match files to be processed', required=True)
+@click.option('--pattern', help='glob wild card pattern (relative path) to match files to be processed. If omit, will process all files in MasterSynced folder.')
+@click.option('--par', help='use parallel or not', is_flag=True)
+@click.option('--verbose', help='turn on verbose', is_flag=True)
 @click.pass_context
-def process(ctx, script, pattern):
+def process(ctx, script, pattern, par, verbose):
     """
         Function to apply script to any files matched the pattern
 
@@ -67,14 +69,22 @@ def process(ctx, script, pattern):
     else:
         script_module = importlib.import_module('mhealth.scripts.' + script)
     func = script_module.main
+    if pattern is None:
+        pattern = ""
     pattern.strip("'").strip('"')
+    
     rel_pattern = ""
     if ctx.obj['PID']:
         rel_pattern = os.path.join(ctx.obj['PID'], pattern)
     else:
         rel_pattern = pattern
+
+    if par:
+        use_parallel = True
+    else:
+        use_parallel = False
     m = ctx.obj['M']
-    result = m.process(rel_pattern, func, use_parallel=True, verbose=False, **kwargs)
+    result = m.process(rel_pattern, func, use_parallel=use_parallel, verbose=verbose, **kwargs)
     click.echo(result.to_csv(sep=',', index=False))
     if script.endswith('.py'):
         sys.path.remove(os.path.dirname(script_path))
