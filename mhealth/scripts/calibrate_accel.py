@@ -7,17 +7,31 @@ import pandas as pd
 import mhealth.api as mh
 import mhealth.api.utils as utils
 
-def main(file, verbose=True, static_chunk_file=None):
+def main(file, verbose=True, static_chunk_file=None, **kwargs):
 	file = os.path.abspath(file)
 	if verbose:
 		print("Process " + file)
 	df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
-	if static_chunk_file is None:
-		raise ValueError("You must provide a static_chunk_file")
-	static_chunk_file = os.path.abspath(static_chunk_file)
-	static_chunks = pd.read_csv(static_chunk_file, parse_dates=[0], infer_datetime_format=True)
 	sid = utils.extract_id(file)
 	pid = utils.extract_pid(file)
+	calibrated_df = run_calibrate_accel(df, verbose=verbose, static_chunk_file=static_chunk_file, pid=pid, sid=sid, **kwargs)
+	output_file = file.replace('MasterSynced', 'Derived/calibrated')
+	if not os.path.exists(os.path.dirname(output_file)):
+		os.makedirs(os.path.dirname(output_file))
+	calibrated_df.to_csv(output_file, index=False, float_format='%.3f')
+	if verbose:
+		print('Saved calibrated data to ' + output_file)
+	return pd.DataFrame()
+
+def run_calibrate_accel(df, verbose=True, static_chunk_file=None, pid=None, sid=None):
+	if static_chunk_file is None:
+		raise ValueError("You must provide a static_chunk_file")
+	if pid is None:
+		raise ValueError("You must provide a valid pid")
+	if sid is None:
+		raise ValueError("You must provide a valid sensor id")
+	static_chunk_file = os.path.abspath(static_chunk_file)
+	static_chunks = pd.read_csv(static_chunk_file, parse_dates=[0], infer_datetime_format=True)
 	selected_static_chunks = static_chunks.loc[(static_chunks['id'] == sid) & (static_chunks['pid'] == pid),:]
 	chunk_count = selected_static_chunks.groupby(['WINDOW_ID', 'COUNT', 'date', 'hour']).count().shape[0]
 	if verbose:
@@ -27,10 +41,4 @@ def main(file, verbose=True, static_chunk_file=None):
 		calibrated_df = df
 	else:
 		calibrated_df = mh.Calibrator(df, max_points=100).set_static(selected_static_chunks).run(verbose=verbose).calibrated
-	output_file = file.replace('MasterSynced', 'Derived/calibrated')
-	if not os.path.exists(os.path.dirname(output_file)):
-		os.makedirs(os.path.dirname(output_file))
-	calibrated_df.to_csv(output_file, index=False, float_format='%.3f')
-	if verbose:
-		print('Saved calibrated data to ' + output_file)
-	return pd.DataFrame()
+	return calibrated_df

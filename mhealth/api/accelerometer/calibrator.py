@@ -5,7 +5,7 @@ from ..windowing import get_sliding_window_boundaries
 import numpy as np
 import pandas as pd
 from ._calibraxis import Calibraxis
-from ..utils import _clip
+from ..utils import clip_dataframe
 
 class Calibrator():
 	def __init__(self, accel_df, angle_diff=30, max_points=12, g_treshold=0.01, chunk_size=1000):
@@ -42,7 +42,7 @@ class Calibrator():
 		for i in indices:
 			st = windows[i, 0]
 			et = windows[i, 1]
-			chunk = _clip(df, st, et)
+			chunk = clip_dataframe(df, st, et)
 			chunk_values = chunk.values[:,1:]
 			chunk_values = chunk_values.astype(np.float64)
 			# check if current chunk is static

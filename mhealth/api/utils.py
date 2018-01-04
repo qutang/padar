@@ -30,9 +30,9 @@ def sampling_rate(file):
 
 def clip(file, start_time=None, stop_time=None):
 	df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
-	return _clip(df, start_time, stop_time)
+	return clip_dataframe(df, start_time, stop_time)
 
-def _clip(df, start_time=None, stop_time=None):
+def clip_dataframe(df, start_time=None, stop_time=None):
 	if start_time is None:
 		start_time = df.iloc[0, 0].to_datetime64().astype('datetime64[ms]')
 	if stop_time is None:
