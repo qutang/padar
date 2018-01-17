@@ -46,8 +46,12 @@ def run_clipper(df, verbose=True, session_file=None, start_time=None, stop_time=
             session_file = os.path.abspath(session_file)
             session_df = pd.read_csv(session_file, parse_dates=[0, 1], infer_datetime_format=True)
             selected_sessions = session_df.loc[session_df['pid'] == pid, :]
-            start_time = selected_sessions.iloc[0, 0]
-            stop_time = selected_sessions.iloc[selected_sessions.shape[0] - 1, 1]
+            if selected_sessions.shape[0] == 0:
+                start_time = None
+                stop_time = None
+            else:
+                start_time = selected_sessions.iloc[0, 0]
+                stop_time = selected_sessions.iloc[selected_sessions.shape[0] - 1, 1]
     
     if start_time is not None:
         if type(start_time) is str:

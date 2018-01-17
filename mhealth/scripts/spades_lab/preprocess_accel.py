@@ -1,14 +1,17 @@
 """
   preprocess pipeline for multilocation paper 2017
   [Insert citation]
+  Usage:
+     mh -r . -p SPADES_1 process --verbose --par --pattern MasterSynced/**/Actigraph*.sensor.csv spades_lab.preprocess_accel
 """
 
 import os
 import pandas as pd
 import mhealth.scripts as scripts
 import mhealth.api as mh
+from . import sync_timestamp
 
-def main(file, verbose=True, static_chunk_file=None, session_file=None, **kwargs):
+def main(file, verbose=True, **kwargs):
   file = os.path.abspath(file)
   df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
 
@@ -23,9 +26,18 @@ def main(file, verbose=True, static_chunk_file=None, session_file=None, **kwargs
     'name': 'calibration',
     'func': scripts.calibrate_accel.run_calibrate_accel,
     'kwargs': {
-      'static_chunk_file': static_chunk_file,
+      'static_chunk_file': 'DerivedCrossParticipants/static_chunks.csv',
       'pid': pid,
       'sid': sid
+    }
+  })
+
+  pipeline.append({
+    'name': 'sync',
+    'func': sync_timestamp.run_sync_timestamp,
+    'kwargs': {
+      'sync_file': 'DerivedCrossParticipants/offset_mapping.csv',
+      'pid': int(pid.split("_")[1])
     }
   })
 
@@ -33,7 +45,7 @@ def main(file, verbose=True, static_chunk_file=None, session_file=None, **kwargs
     'name': 'clip',
     'func': scripts.clipper.run_clipper,
     'kwargs': {
-      'session_file': session_file,
+      'session_file': 'DerivedCrossParticipants/sessions.csv',
       'pid': pid
     }
   })

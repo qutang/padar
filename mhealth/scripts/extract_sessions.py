@@ -1,5 +1,7 @@
 """
   script to extract session times from annotation files each hour
+  Usage:
+    mh -r . process extract_sessions --par --pattern MasterSynced/**/SPADESInLab*.annotation.csv > sessions.csv
 """
 
 import os

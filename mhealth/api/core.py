@@ -88,17 +88,46 @@ class M:
         if func is None:
             raise ValueError("You must provide a function to process files")
         entry_files = glob.glob(pattern, recursive=True)
+        prev_files = self._get_prev_files(entry_files)
+        next_files = self._get_next_files(entry_files)
+
         # parallel version
         if use_parallel:
-            func_partial = partial(func, verbose=verbose, **kwargs)
-            result = self._pool.map(func_partial, entry_files)
+            def zipped_func(a_zip, verbose=False, **kwargs):
+                return func(a_zip[0], verbose=verbose, prev_file=a_zip[1], next_file=a_zip[2], **kwargs)
+            
+            func_partial = partial(zipped_func, verbose=verbose, **kwargs)
+            result = self._pool.map(func_partial, zip(entry_files, prev_files, next_files))
         else:
             result = []
-            for file in entry_files:
-                entry_result = func(file, verbose=verbose, **kwargs)
+            for file, prev_file, next_file in zip(entry_files, prev_files, next_files):
+                entry_result = func(file, verbose=verbose, prev_file=prev_file, next_file=next_file, **kwargs)
                 result.append(entry_result)
         result = pd.concat(result) 
         return result
+
+    def _get_prev_files(self, entry_files):
+        entry_files = np.array(entry_files)
+        prev_files = np.copy(entry_files)
+        prev_files = np.roll(prev_files, 1)
+        prev_files[0] = None
+        entry_pids = np.array(list(map(lambda name: extract_pid(name), entry_files)))
+        prev_pids = np.array(list(map(lambda name: extract_pid(name), prev_files)))
+        make_none_mask = entry_pids != prev_pids
+        prev_files[make_none_mask] = None
+        return prev_files.tolist()
+
+    def _get_next_files(self, entry_files):
+        entry_files = np.array(entry_files)
+        next_files = np.copy(entry_files)
+        next_files = np.roll(next_files, -1)
+        next_files[-1] = None
+        
+        entry_pids =  np.array(list(map(lambda name: extract_pid(name), entry_files)))
+        next_pids = np.array(list(map(lambda name: extract_pid(name), next_files)))
+        make_none_mask = entry_pids != next_pids
+        next_files[make_none_mask] = None
+        return next_files.tolist()
 
     @property
     def participants(self):

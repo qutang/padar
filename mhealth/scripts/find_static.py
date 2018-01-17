@@ -1,5 +1,7 @@
 """
 Script to run on a sensor data file to find static chunks for calibration
+Usage:
+    mh -r . process find_static --par --pattern MasterSynced/**/Actigraph*.sensor.csv > static_chunks.csv
 """
 
 import os
