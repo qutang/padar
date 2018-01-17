@@ -46,14 +46,17 @@ def datetime64_to_str_with_milliseconds(dt):
     ts = pd.to_datetime(dt)
     return datetime_to_str_with_milliseconds(ts)
 
-def datetime64_to_milliseconds(dt):
+def datetime64_to_seconds(dt):
     '''
 		naive datetime conversion
 		Naive means no time zone is specified, the unix origin has no time zone specified as well
 	'''
     return (dt - np.datetime64('1970-01-01T00:00:00')) / np.timedelta64(1, 's')
 
-def datetime_to_milliseconds(dt):
+def datetime64_to_milliseconds(dt):
+    return datetime64_to_seconds(dt) * 1000
+
+def datetime_to_seconds(dt):
     '''
 		naive datetime conversion
 		Naive means no time zone is specified, the unix origin has no time zone specified as well
@@ -62,7 +65,14 @@ def datetime_to_milliseconds(dt):
         dt = np.datetime64(dt)
     elif isinstance(dt, list):
         dt = np.array(dt, dtype='datetime64[s]')
-    return datetime64_to_milliseconds(dt)
+    return datetime64_to_seconds(dt)
+
+def datetime_to_milliseconds(dt):
+    return datetime_to_seconds(dt) * 1000
+
+def seconds_to_datetime64(ts):
+    ts_indices = pd.to_datetime(ts, unit='s')
+    return ts_indices.values
 
 def milliseconds_to_datetime64(ts):
     ts_indices = pd.to_datetime(ts, unit='ms')

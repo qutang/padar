@@ -96,13 +96,13 @@ def run_compute_class_labels(df, verbose=True, prev_file=None, next_file=None, s
 	if chunk_et > et.to_datetime64():
 		chunk_et = et.to_datetime64()
 
-	if prev_file is not None:
+	if prev_file is not None and prev_file != 'None':
 		prev_df = pd.read_csv(prev_file, parse_dates=[0, 1, 2], infer_datetime_format=True)
 		if len(columns) < len(prev_df.columns):
 			columns = prev_df.columns
 	else:
 		prev_df = pd.DataFrame()
-	if next_file is not None:
+	if next_file is not None and next_file != 'None':
 		next_df = pd.read_csv(next_file, parse_dates=[0, 1, 2], infer_datetime_format=True)
 		if len(columns) < len(next_df.columns):
 			columns = next_df.columns

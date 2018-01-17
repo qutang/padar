@@ -2,7 +2,9 @@
   preprocess pipeline for multilocation paper 2017
   [Insert citation]
   Usage:
-     mh -r . -p SPADES_1 process --verbose --par --pattern MasterSynced/**/Actigraph*.sensor.csv spades_lab.preprocess_accel
+     mh -r . -p SPADES_1 process --verbose --pattern MasterSynced/**/Actigraph*.sensor.csv spades_lab.preprocess_accel
+
+  Note that if a pipe (except for the first pipe) requires a prev or next file, it shall not be put in the chain, as the next file may not be applied 
 """
 
 import os
@@ -52,7 +54,6 @@ def main(file, verbose=True, **kwargs):
 
   result = df.copy(deep=True)
   for pipe in pipeline:
-    
     print('Execute ' + pipe['name'] + " on file: " + file)
     print(result.shape)
     func = pipe['func']

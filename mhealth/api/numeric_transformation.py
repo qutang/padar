@@ -60,3 +60,50 @@ def _interpolate_1d(y, x, new_x):
 	fitted = interp1d(x, y)
 	new_y = fitted(new_x)
 	return new_y
+
+@as_2d_array
+def change_orientation(X, x_axis_change = 'X', y_axis_change = 'Y', z_axis_change = 'Z'):
+    X_clone = np.copy(X)
+    x = np.copy(X_clone[:,0])
+    y = np.copy(X_clone[:,1])
+    z = np.copy(X_clone[:,2])
+    if x_axis_change == 'X':
+        X_clone[:,0] = x
+    elif x_axis_change == '-X':
+        X_clone[:,0] = -x
+    elif x_axis_change == 'Y':
+        X_clone[:,0] = y
+    elif x_axis_change == '-Y':
+        X_clone[:,0] = -y
+    elif x_axis_change == 'Z':
+        X_clone[:,0] = z
+    elif x_axis_change == '-Z':
+        X_clone[:,0] = -z
+    
+    if y_axis_change == 'X':
+        X_clone[:,1] = x
+    elif y_axis_change == '-X':
+        X_clone[:,1] = -x
+    elif y_axis_change == 'Y':
+        X_clone[:,1] = y
+    elif y_axis_change == '-Y':
+        X_clone[:,1] = -y
+    elif y_axis_change == 'Z':
+        X_clone[:,1] = z
+    elif y_axis_change == '-Z':
+        X_clone[:,1] = -z
+
+    if z_axis_change == 'X':
+        X_clone[:,2] = x
+    elif z_axis_change == '-X':
+        X_clone[:,2] = -x
+    elif z_axis_change == 'Y':
+        X_clone[:,2] = y
+    elif z_axis_change == '-Y':
+        X_clone[:,2] = -y
+    elif z_axis_change == 'Z':
+        X_clone[:,2] = z
+    elif z_axis_change == '-Z':
+        X_clone[:,2] = -z
+
+    return X_clone

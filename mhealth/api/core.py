@@ -87,10 +87,21 @@ class M:
     def _process(self, pattern, func, use_parallel=False, verbose=False, **kwargs):
         if func is None:
             raise ValueError("You must provide a function to process files")
-        entry_files = glob.glob(pattern, recursive=True)
-        prev_files = self._get_prev_files(entry_files)
-        next_files = self._get_next_files(entry_files)
+        entry_files = np.array(glob.glob(pattern, recursive=True))
 
+        # sort by pid, sid, date, hour
+        pids = np.array(list(map(lambda file: extract_pid(file), entry_files)))
+        sids = np.array(list(map(lambda file: extract_id(file), entry_files)))
+        dates = np.array(list(map(lambda file: extract_date(file), entry_files)))
+        hours = np.array(list(map(lambda file: extract_hour(file), entry_files)))
+        sorted_inds = np.lexsort((hours, dates, sids, pids)).tolist()
+        entry_files = entry_files[sorted_inds].tolist()
+        pids = pids[sorted_inds].tolist()
+        sids = sids[sorted_inds].tolist()
+        dates = dates[sorted_inds].tolist()
+        hours = hours[sorted_inds].tolist()
+        prev_files = self._get_prev_files(entry_files, pids, sids)
+        next_files = self._get_next_files(entry_files, pids, sids)
         # parallel version
         if use_parallel:
             def zipped_func(a_zip, verbose=False, **kwargs):
@@ -106,26 +117,31 @@ class M:
         result = pd.concat(result) 
         return result
 
-    def _get_prev_files(self, entry_files):
+    def _get_prev_files(self, entry_files, pids, sids):
         entry_files = np.array(entry_files)
         prev_files = np.copy(entry_files)
         prev_files = np.roll(prev_files, 1)
         prev_files[0] = None
-        entry_pids = np.array(list(map(lambda name: extract_pid(name), entry_files)))
-        prev_pids = np.array(list(map(lambda name: extract_pid(name), prev_files)))
-        make_none_mask = entry_pids != prev_pids
+        prev_pids = np.copy(pids)
+        prev_pids = np.roll(prev_pids, 1)
+        prev_pids[0] = None
+        prev_sids = np.copy(sids)
+        prev_sids = np.roll(prev_sids, 1)
+        prev_sids[0] = None
+        make_none_mask = (pids != prev_pids) | (sids != prev_sids)
         prev_files[make_none_mask] = None
         return prev_files.tolist()
 
-    def _get_next_files(self, entry_files):
+    def _get_next_files(self, entry_files, pids, sids):
         entry_files = np.array(entry_files)
         next_files = np.copy(entry_files)
         next_files = np.roll(next_files, -1)
         next_files[-1] = None
-        
-        entry_pids =  np.array(list(map(lambda name: extract_pid(name), entry_files)))
-        next_pids = np.array(list(map(lambda name: extract_pid(name), next_files)))
-        make_none_mask = entry_pids != next_pids
+        next_pids = np.roll(pids, -1)
+        next_pids[-1] = None
+        next_sids = np.roll(sids, -1)
+        next_sids[-1] = None
+        make_none_mask = (pids != next_pids) | (sids != next_sids)
         next_files[make_none_mask] = None
         return next_files.tolist()
 

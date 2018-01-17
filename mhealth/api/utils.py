@@ -45,11 +45,18 @@ def extract_id(abspath):
 	abspath = os.path.abspath(abspath)
 	return os.path.basename(abspath).split('.')[1].split('-')[0].upper().strip()
 
+def extract_derived_folder_name(abspath):
+	abspath = os.path.normpath(abspath)
+	return abspath.split('Derived')[1].split(os.path.sep)[1]
+
 def extract_pid(abspath):
 	if abspath is None:
 		return None
 	abspath = os.path.normpath(os.path.abspath(abspath))
-	return os.path.basename(os.path.dirname(abspath.split('MasterSynced')[0]))
+	if "MasterSynced" in abspath:
+		return os.path.basename(os.path.dirname(abspath.split('MasterSynced')[0]))
+	elif "Derived" in abspath:
+		return os.path.basename(os.path.dirname(abspath.split('Derived')[0]))
 
 def sampling_rate(file):
 	df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)

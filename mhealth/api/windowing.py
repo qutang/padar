@@ -24,11 +24,11 @@ def get_sliding_window_boundaries(start_time, stop_time, window_duration=1000, s
 		stop_time = pd.to_datetime(stop_time)
 	
 	if isinstance(start_time, np.datetime64):
-		st_unix = datetime64_to_milliseconds(start_time) * 1000
-		et_unix = datetime64_to_milliseconds(stop_time) * 1000
+		st_unix = datetime64_to_milliseconds(start_time)
+		et_unix = datetime64_to_milliseconds(stop_time)
 	elif isinstance(start_time, datetime):
-		st_unix = datetime_to_milliseconds(start_time) * 1000
-		et_unix = datetime_to_milliseconds(stop_time) * 1000
+		st_unix = datetime_to_milliseconds(start_time)
+		et_unix = datetime_to_milliseconds(stop_time)
 	
 	st_unix_windows = np.arange(st_unix, et_unix, step_size)
 	et_unix_windows = st_unix_windows + window_duration
