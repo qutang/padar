@@ -74,8 +74,10 @@ class M:
         row['type'] = extract_file_type(file)
         row['id'] = extract_id(file)
         row['pid'] = extract_pid(file)
+        row['sensortype'] = extract_sensortype(file)
+        row['datatype'] = extract_datatype(file)
         row_df = pd.DataFrame(data=row, index=[0])
-        row_df = row_df[['pid', 'id', 'type', 'date', 'hour'] + keys]
+        row_df = row_df[['pid', 'id', 'type', 'date', 'hour', 'sensortype', 'datatype'] + keys]
         row_df = pd.concat([row_df] + extra_dfs, axis=1)
         return row_df
 
@@ -198,6 +200,8 @@ class M:
             if os.path.exists(f):
                 subject_df = pd.read_csv(f)
                 subject_dfs.append(subject_df)
+        if len(subject_dfs) == 0:
+            return pd.DataFrame()
         merged_subject_meta = pd.concat(subject_dfs)
         return merged_subject_meta
 
@@ -209,6 +213,8 @@ class M:
                 location_df = pd.read_csv(f)
                 location_df['PID'] = os.path.basename(os.path.dirname(f))
                 location_dfs.append(location_df)
+        if len(location_dfs) == 0:
+            return pd.DataFrame()
         merged_location_mapping = pd.concat(location_dfs)
         return merged_location_mapping
 
@@ -220,6 +226,8 @@ class M:
                 session_df = pd.read_csv(f)
                 session_df['PID'] = os.path.basename(os.path.dirname(f))
                 session_dfs.append(session_df)
+        if len(session_dfs) == 0:
+            return pd.DataFrame()
         merged_session_meta = pd.concat(session_dfs)
         return merged_session_meta
         
@@ -241,4 +249,5 @@ class M:
         exclude = exclude or name == 'DerivedCrossParticipants'
         exclude = exclude or name == 'src'
         exclude = exclude or name == '__pycache__'
+        exclude = exclude or name == '.ipynb_checkpoints'
         return exclude

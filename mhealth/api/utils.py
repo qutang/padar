@@ -39,6 +39,16 @@ def extract_id(abspath):
 	abspath = os.path.abspath(abspath)
 	return os.path.basename(abspath).split('.')[1].split('-')[0].upper().strip()
 
+def extract_sensortype(abspath):
+	abspath = os.path.abspath(abspath)
+	return os.path.basename(abspath).split('.')[0].split('-')[0]
+
+def extract_datatype(abspath):
+	abspath = os.path.abspath(abspath)
+	if len(os.path.basename(abspath).split('.')[0].split('-')) < 2:
+		return ""
+	return os.path.basename(abspath).split('.')[0].split('-')[1]
+
 def extract_derived_folder_name(abspath):
 	abspath = os.path.normpath(abspath)
 	return abspath.split('Derived')[1].split(os.path.sep)[1]
@@ -94,7 +104,7 @@ def validate_folder_structure(file):
 
 def validate_filename(file):
 	filename = os.path.basename(file)
-	pattern = '[A-Za-z0-9\-]+\.[A-Za-z0-9\-]+\.[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3}-[MP]{1}[0-9]{4}\.[a-z]+\.csv'
+	pattern = '([A-Za-z0-9]+\-){1,2}[A-Za-z0-9]+\.[A-Za-z0-9]+\-[A-Za-z0-9]+\.[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3}-[MP]{1}[0-9]{4}\.[a-z]+\.csv'
 	if re.search(pattern, file) is not None:
 		return "True"
 	else:
@@ -161,3 +171,8 @@ def sensor_stat(file):
 		for key in result:
 			result[key] = 'ParserError'
 	return pd.DataFrame(result, index=[0])
+
+def major_element(ls):
+	(values,counts) = np.unique(ls,return_counts=True)
+	ind=np.argmax(counts)
+	return values[ind]

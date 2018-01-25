@@ -101,6 +101,7 @@ def quality_check(ctx):
     m = ctx.obj['M']
     app = dqc_app.App(m)
     app.init_layout()
+    app.setup_callbacks()
     app.run()
 
 @click.command(context_settings=dict(
