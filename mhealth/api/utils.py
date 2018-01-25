@@ -3,12 +3,6 @@ import pandas as pd
 import numpy as np
 import re
 
-def file_lines(file):
-	f = open(file, 'rb')
-	lines = sum(1 for line in f)
-	f.close()
-	return lines
-
 def extract_file_type(abspath):
     return os.path.basename(abspath).split('.')[3].lower().strip()
 
@@ -84,6 +78,58 @@ def _sampling_rate(df):
 	# drop the first and last window
 	minute_counts = minute_counts[1:-1]
 	return np.mean(minute_counts / 60)
+
+def num_of_rows(file):
+	with open(file, 'r') as f:
+		lines = len(f.readlines())
+	return lines
+
+def validate_folder_structure(file):
+	file = os.path.normpath(os.path.abspath(file))
+	if re.search('MasterSynced\\' + os.path.sep + '[0-9]{4}' + "\\" + os.path.sep + '[0-9]{2}' + "\\" + os.path.sep + '[0-9]{2}' + "\\" + os.path.sep + '[0-9]{2}', file) is not None:
+		correct ="True"
+	else:
+		correct = "False"
+	return correct
+
+def validate_filename(file):
+	filename = os.path.basename(file)
+	pattern = '[A-Za-z0-9\-]+\.[A-Za-z0-9\-]+\.[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3}-[MP]{1}[0-9]{4}\.[a-z]+\.csv'
+	if re.search(pattern, file) is not None:
+		return "True"
+	else:
+		return "False"
+
+def validate_csv_header(file):
+	file_type = extract_file_type(os.path.abspath(file))
+	with open(file, 'r') as f:
+		header = f.readline().strip()
+	tokens = header.split(',')
+	if len(tokens) < 2:
+		return "Header has less than 2 columns"
+	message = ""
+	if tokens[0] != 'HEADER_TIME_STAMP':
+		message = message + "HEADER_TIME_STAMP|"
+	if file_type == 'annotation' or file_type == 'event':
+		if tokens[1] != 'START_TIME':
+			message = message + 'START_TIME|'
+		if tokens[2] != 'STOP_TIME':
+			message = message + 'STOP_TIME|'
+	if file_type == 'annotation':
+		if tokens[3] != 'LABEL_NAME':
+			message = message + 'LABEL_NAME'
+	if len(message) > 0:
+		return message
+	else:
+		return "True"
+
+def na_rows(file):
+	file_type = extract_file_type(file)
+	if file_type == 'sensor':
+		df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
+	elif file_type == 'annotation' or file_type == 'event':
+		df = pd.read_csv(file, parse_dates=[0,1,2], infer_datetime_format=True)
+	return df.shape[0] - df.dropna().shape[0]
 
 def sensor_stat(file):
 	file_type = extract_file_type(file)

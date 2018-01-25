@@ -19,9 +19,16 @@ class M:
         self._summary_funcs = {
             'file_size': lambda x: os.path.getsize(x) / 1024.0,
             # 'exists': lambda x: os.path.exists(x)
-            # 'sensor_stat': sensor_stat
+            'num_of_rows': num_of_rows,
+            'mh_folder_structure': validate_folder_structure,
+            'mh_filename': validate_filename,
+            'csv_header': validate_csv_header,
+            'na_rows': na_rows
         }
         self._num_of_cpu = cpu_count()
+
+    def get_root(self):
+        return self._root
 
     def summarize(self, rel_path = "", use_parallel=False, verbose=False):
         if use_parallel:
@@ -183,6 +190,48 @@ class M:
 
     def _get_participants(self):
         return [name for name in os.listdir(self._root) if os.path.isdir(os.path.join(self._root, name)) and not self._excluded_files(name)]
+
+    def merged_subject_meta(self):
+        subject_files = self._get_subject_meta_files()
+        subject_dfs = []
+        for f in subject_files:
+            if os.path.exists(f):
+                subject_df = pd.read_csv(f)
+                subject_dfs.append(subject_df)
+        merged_subject_meta = pd.concat(subject_dfs)
+        return merged_subject_meta
+
+    def merged_location_mapping(self, filename="Sensor_location.csv"):
+        location_files = self._get_meta_files(filename)
+        location_dfs = []
+        for f in location_files:
+            if os.path.exists(f):
+                location_df = pd.read_csv(f)
+                location_df['PID'] = os.path.basename(os.path.dirname(f))
+                location_dfs.append(location_df)
+        merged_location_mapping = pd.concat(location_dfs)
+        return merged_location_mapping
+
+    def merged_session_meta(self, filename='Sessions.csv'):
+        session_files = self._get_meta_files(filename)
+        session_dfs = []
+        for f in session_files:
+            if os.path.exists(f):
+                session_df = pd.read_csv(f)
+                session_df['PID'] = os.path.basename(os.path.dirname(f))
+                session_dfs.append(session_df)
+        merged_session_meta = pd.concat(session_dfs)
+        return merged_session_meta
+        
+    def _get_subject_meta_files(self):
+        participants = self._get_participants()
+        subject_metas = list(map(lambda p: self._root + os.path.sep + p + os.path.sep + 'Subject.csv', participants))
+        return subject_metas
+
+    def _get_meta_files(self, filename):
+        participants = self._get_participants()
+        metas = list(map(lambda p: self._root + os.path.sep + p + os.path.sep + filename, participants))
+        return metas
 
     def _excluded_files(self, name):
         exclude = False

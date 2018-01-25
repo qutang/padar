@@ -6,6 +6,7 @@ import warnings
 import numpy
 import importlib
 import sys
+from .apps import data_quality_check as dqc_app
 
 @click.group()
 @click.option('--pid', '-p', help='If provided, things will be tuned for specific participant')
@@ -39,6 +40,68 @@ def summary(ctx):
     m = ctx.obj['M']
     result = m.summarize(rel_path, use_parallel=False, verbose=False)
     click.echo(result.to_csv(sep=',', index=False, float_format='%.3f'))
+
+@click.command()
+@click.pass_context
+def merge_subject_meta(ctx):
+    """[summary]
+    
+    [description]
+    
+    Decorators:
+        click
+    """
+    rel_path = ""
+    m = ctx.obj['M']
+    result = m.merged_subject_meta()
+    click.echo(result.to_csv(sep=',', index=False, float_format='%.3f'))
+
+@click.command()
+@click.pass_context
+def merge_session_meta(ctx):
+    """[summary]
+    
+    [description]
+    
+    Decorators:
+        click
+    """
+    rel_path = ""
+    m = ctx.obj['M']
+    result = m.merged_session_meta()
+    click.echo(result.to_csv(sep=',', index=False, float_format='%.3f'))
+
+@click.command()
+@click.pass_context
+@click.argument('filename')
+def merge_location_mapping(ctx, filename):
+    """[summary]
+    
+    [description]
+    
+    Decorators:
+        click
+    """
+    rel_path = ""
+    m = ctx.obj['M']
+    result = m.merged_location_mapping(filename)
+    click.echo(result.to_csv(sep=',', index=False, float_format='%.3f'))
+
+@click.command()
+@click.pass_context
+def quality_check(ctx):
+    """[summary]
+    
+    [description]
+    
+    Decorators:
+        click
+    """
+    rel_path = ""
+    m = ctx.obj['M']
+    app = dqc_app.App(m)
+    app.init_layout()
+    app.run()
 
 @click.command(context_settings=dict(
     ignore_unknown_options=True,
@@ -91,3 +154,7 @@ def process(ctx, script, pattern, par, verbose):
 
 main.add_command(summary)
 main.add_command(process)
+main.add_command(quality_check)
+main.add_command(merge_subject_meta)
+main.add_command(merge_location_mapping)
+main.add_command(merge_session_meta)
