@@ -47,12 +47,12 @@ class App:
 				self._major_num_of_annotators = utils.major_element(device_counts.loc[device_counts['type'] == 'annotation', 'id'].values)
 			return message
 
-		@app.callback(Output('summary-table-container', 'children'),[Input('refresh-state', 'children'), Input('cross-filter-participant', 'value')])
-		def load_summary_table(state, participant):
-			if state == 'Refreshed' or state == 'Loaded':
-				return self._create_summary_table(participant)
-			else:
-				return html.H3("Not ready")
+		# @app.callback(Output('summary-table-container', 'children'),[Input('refresh-state', 'children'), Input('cross-filter-participant', 'value')])
+		# def load_summary_table(state, participant):
+		# 	if state == 'Refreshed' or state == 'Loaded':
+		# 		return self._create_summary_table(participant)
+		# 	else:
+		# 		return html.H3("Not ready")
 
 		@app.callback(Output('quality-check-heatmap-container', 'children'),[Input('refresh-state', 'children'), Input('cross-filter-participant', 'value')])
 		def load_quality_check_heatmap(state, participant):
@@ -60,6 +60,21 @@ class App:
 				return self._create_quality_check_heatmap(participant)
 			else:
 				return html.H3("Not ready")
+
+		# @app.callback(Output('location-mapping-table-container', 'children'),[Input('refresh-state', 'children'), Input('cross-filter-participant', 'value')])
+		# def load_location_mapping_table(state, participant):
+		# 	if state == 'Refreshed' or state == 'Loaded':
+		# 		return self._create_location_mapping_table(participant)
+		# 	else:
+		# 		return html.H3("Not ready")
+
+		# @app.callback(Output('subject-meta-table-container', 'children'),[Input('refresh-state', 'children'), Input('cross-filter-participant', 'value')])
+		# def load_subject_meta_table(state, participant):
+		# 	if state == 'Refreshed' or state == 'Loaded':
+		# 		return self._create_subject_meta_table(participant)
+		# 	else:
+		# 		return html.H3("Not ready")
+
 
 		@app.callback(Output('save-quality-check-summary', 'disabled'),[Input('refresh-state', 'children')])
 		def enable_save_button(children):
@@ -144,9 +159,9 @@ class App:
 				file_message = file_message + "FILENAME_PATTERN: False\n\n"
 			# check csv header
 			total_checks = total_checks + 1
-			if row['csv_header'] != "True":
+			if row['csv_header'] != "True" and row['csv_header'] != True:
 				incorrect_checks = incorrect_checks + 1
-				file_message = file_message + "CSV_HEADER_ERROR: " + row['csv_header'] + "\n\n"
+				file_message = file_message + "CSV_HEADER_ERROR: " + str(row['csv_header']) + "\n\n"
 			# check NA rows
 			total_checks = total_checks + 1
 			if row['na_rows'] > 0:
@@ -193,12 +208,12 @@ class App:
 				z_data.append(z_row)
 				text_data.append(text_row)
 
-			figure = ff.create_annotated_heatmap(z_data, x=x_dates, y=y_hours, colorscale='RdBu', zmin=0, zmax=1, showscale=True, text=text_data, hoverinfo='z')
+			figure = ff.create_annotated_heatmap(z_data, x=x_dates, y=y_hours, colorscale='RdBu', zmin=0, zmax=1, showscale=True, text=text_data, hoverinfo='z', xgap=2, ygap=2)
 			
 			layout = go.Layout(
 				title = 'Quality Check Heatmap for ' + str(participant),
-				xaxis = dict(title='Date', ticks='', nticks=len(x_dates), tickformat='%Y-%m-%d'),
-				yaxis = dict(title='Hour', ticks='', nticks=len(y_hours) * 2),
+				xaxis = dict(title='Date', tickformat='%Y-%m-%d'),
+				yaxis = dict(title='Hour'),
 				
 			)
 			figure.layout = layout
@@ -212,37 +227,59 @@ class App:
 			id='cross-filter-participant'
 		), style={'width': '20%'})
 
-	def init_layout(self):
-		self._app.layout = html.Div(children=[
-			html.H1(children='mhealth Data Quality Check'),
-			html.P(children=self._root_folder),
-			html.H2(children='Data Quality Heatmap'),
-			html.Button(id='refresh-check', n_clicks=0, children='Refresh Data Quality Heatmap'),
-			html.Button(id='save-quality-check-summary', n_clicks=0, children='Save Quality Check summary', disabled='true'),
-			html.P(id='refresh-state'),
-			html.P(id='save-state'),
-			self._create_participant_dropdown(),
-			html.Div(id='quality-check-heatmap-container', style={'float': 'left', 'width': '50%'}),
-			dcc.Markdown(id='quality-check-problems', containerProps=dict(style={'float': 'left', 'width': '50%', 'height': 400, 'overflow': 'auto'})),
-			html.Div(id='summary-table-container', style={'clear': 'both'}),
-			html.H2(children='Subject Meta Table', style={'clear': 'both'}),
-			dt.DataTable(
-				rows=self._subject_table.to_dict("records"),
-				columns=self._subject_table.columns,
-				row_selectable=True,
-				filterable=True,
-				sortable=True,
-				id='table-subject'
-			),
-			html.H2(children='Location Mapping Table'),
-			dt.DataTable(
-				rows=self._location_table.to_dict("records"),
-				columns=self._location_table.columns,
+	def _create_location_mapping_table(self, participant):
+		if self._location_table.shape[0] == 0:
+			return "Cannot find any sensor location mapping files"
+		else:
+			filtered_table = self._location_table.loc[self._location_table['PID'] == participant,:]
+			return dt.DataTable(
+				rows=filtered_table.to_dict("records"),
+				columns=filtered_table.columns,
 				row_selectable=True,
 				filterable=True,
 				sortable=True,
 				id='table-location'
-			),
+			)
+	
+	# def _create_subject_meta_table(self, participant):
+	# 	if self._subject_table.shape[0] == 0:
+	# 		return "Cannot find any subject meta files"
+	# 	else:
+	# 		filtered_table = self._subject_table.loc[self._subject_table['SUBJECT_ID'] == participant,:]
+	# 		return dt.DataTable(
+	# 			rows=filtered_table.to_dict("records"),
+	# 			columns=filtered_table.columns,
+	# 			row_selectable=True,
+	# 			filterable=True,
+	# 			sortable=True,
+	# 			id='table-subject'
+	# 		)
+
+	def init_layout(self):
+		self._app.layout = html.Div(children=[
+			html.H1(children='mhealth Data Quality Check'),
+			html.P(children=self._root_folder),
+			html.Button(id='refresh-check', n_clicks=0, children='Run quality check'),
+			html.Button(id='save-quality-check-summary', n_clicks=0, children='Save quality check', disabled='true'),
+			html.P(id='refresh-state'),
+			html.P(id='save-state'),
+			self._create_participant_dropdown(),
+			html.H2(children='Meta File Check'),
+			html.Div(id='meta-file-div', children=[
+				html.Div(id='location-mapping-div', children=[
+					html.H3(children='Location Mapping Table'),
+				html.Div(id='location-mapping-table-container'),
+				], style={'float': 'left', 'width': '33.3%'}),
+				# html.Div(id='subject-meta-div', children=[
+				# 	html.H3(children='Subject Meta Table'),
+				# html.Div(id='subject-meta-table-container'),
+				# ], style={'float': 'left', 'width': '33.3%'})
+			]),
+			html.H2(children='Data Quality Heatmap'),
+			html.Div(id='quality-check-heatmap-container', style={'float': 'left', 'width': '50%'}),
+			dcc.Markdown(id='quality-check-problems', containerProps=dict(style={'float': 'left', 'width': '50%', 'height': 400, 'overflow': 'auto'})),
+			html.Div(id='summary-table-container', style={'clear': 'both'}),
+			
 			# html.H2(children='Session Table'),
 			# dt.DataTable(
 			# 	rows=self._session_table.to_dict("records"),
