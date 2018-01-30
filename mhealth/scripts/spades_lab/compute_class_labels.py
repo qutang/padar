@@ -69,7 +69,7 @@ def main(file, verbose=True, prev_file=None, next_file=None, ws=12800, ss=12800,
 		print('Session stop time: ' + str(et))
 
 
-	result_df = run_compute_class_labels(df, verbose=verbose, prev_file=prev_file, next_file=next_file, st=st, et=et, ws=ws, ss=ss, pid=pid, **kwargs)
+	result_df = run_compute_class_labels(df, verbose=verbose, prev_file=prev_file, next_file=next_file, st=st, et=et, ws=ws, ss=ss, **kwargs)
 	
 	output_path = file.replace("MasterSynced", "Derived/preprocessed").replace("annotation", "class")
 	if not os.path.exists(os.path.dirname(output_path)):
@@ -82,7 +82,7 @@ def main(file, verbose=True, prev_file=None, next_file=None, ws=12800, ss=12800,
 	result_df['pid'] = pid
 	return result_df
 
-def run_compute_class_labels(df, verbose=True, prev_file=None, next_file=None, st=None, et=None, ws=12800, ss=12800, pid=None, **kwargs):
+def run_compute_class_labels(df, verbose=True, prev_file=None, next_file=None, st=None, et=None, ws=12800, ss=12800, **kwargs):
 
 	columns = df.columns
 	
