@@ -1,1 +1,1 @@
-from . import clipper, find_static, count_lines, calibrate_accel, extract_sessions, interpolate_sensor
+from . import ClipProcessor, StaticFinder, count_lines, calibrate_accel, SessionExtractor, interpolate_sensor

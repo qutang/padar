@@ -113,15 +113,20 @@ class M:
         next_files = self._get_next_files(entry_files, pids, sids)
         # parallel version
         if use_parallel:
-            def zipped_func(a_zip, verbose=False, **kwargs):
-                return func(a_zip[0], verbose=verbose, prev_file=a_zip[1], next_file=a_zip[2], **kwargs)
+            # def zipped_func(a_zip, verbose=False, **kwargs):
+            #     return func(a_zip[0], verbose=verbose, prev_file=a_zip[1], next_file=a_zip[2], **kwargs)
             
-            func_partial = partial(zipped_func, verbose=verbose, **kwargs)
-            result = self._pool.map(func_partial, zip(entry_files, prev_files, next_files))
+            def zipped_func(a_zip):
+                return func(verbose=verbose, **kwargs)(a_zip[0], prev_file=a_zip[1], next_file=a_zip[2])
+
+            # func_partial = partial(zipped_func, verbose=verbose, **kwargs)
+            # result = self._pool.map(func_partial, zip(entry_files, prev_files, next_files))
+            result = self._pool.map(zipped_func, zip(entry_files, prev_files, next_files))
         else:
             result = []
             for file, prev_file, next_file in zip(entry_files, prev_files, next_files):
-                entry_result = func(file, verbose=verbose, prev_file=prev_file, next_file=next_file, **kwargs)
+                # entry_result = func(file, verbose=verbose, prev_file=prev_file, next_file=next_file, **kwargs)
+                entry_result = func(verbose=verbose, **kwargs)(file, prev_file=prev_file, next_file=next_file)
                 result.append(entry_result)
         result = pd.concat(result) 
         return result

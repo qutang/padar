@@ -132,7 +132,8 @@ def process(ctx, script, pattern, par, verbose):
         script_module = importlib.import_module(os.path.splitext(os.path.basename(script))[0])
     else:
         script_module = importlib.import_module('mhealth.scripts.' + script)
-    func = script_module.main
+    # func = script_module.main
+    func = script_module.build
     if pattern is None:
         pattern = ""
     pattern.strip("'").strip('"')

@@ -176,3 +176,10 @@ def major_element(ls):
 	(values,counts) = np.unique(ls,return_counts=True)
 	ind=np.argmax(counts)
 	return values[ind]
+
+def generate_output_filepath(file, setname, newtype):
+	file = os.path.normpath(os.path.abspath(file))
+	if "MasterSynced" in file:
+		return file.replace('MasterSynced', 'Derived' + os.path.sep + setname).replace(extract_file_type(file), newtype)
+	elif "Derived" in abspath:
+		return file.replace(extract_derived_folder_name(file), setname).replace(extract_file_type(file), newtype)
