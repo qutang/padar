@@ -24,9 +24,9 @@ class SensorResampler(SensorProcessor):
     def __init__(self, verbose=True, independent=False, new_sr=None, gap_threshold=1, setname='Resampled'):
         SensorProcessor.__init__(self, verbose=verbose, independent=independent)
         self.name = 'SensorResampler'
-        self.gap_threshold = 1
+        self.gap_threshold = gap_threshold
         self.new_sr = new_sr
-        self.setname = 'Resampled'
+        self.setname = setname
 
     def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
         if self.new_sr is None:

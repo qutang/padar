@@ -179,9 +179,33 @@ def major_element(ls):
 	ind=np.argmax(counts)
 	return values[ind]
 
-def generate_output_filepath(file, setname, newtype):
+def generate_output_filepath(file, setname, newtype=None, datatype=None):
 	file = os.path.normpath(os.path.abspath(file))
 	if "MasterSynced" in file:
-		return file.replace('MasterSynced', 'Derived' + os.path.sep + setname).replace(extract_file_type(file), newtype)
+		new_file = file.replace('MasterSynced', 'Derived' + os.path.sep + setname)
 	elif "Derived" in file:
-		return file.replace(extract_derived_folder_name(file), setname).replace(extract_file_type(file), newtype)
+		new_file = file.replace(extract_derived_folder_name(file), setname)
+
+	if newtype is not None:
+		new_file = new_file.replace(extract_file_type(file), newtype)
+	if datatype is not None:
+		new_file = new_file.replace(extract_datatype(file), datatype)
+	
+	return new_file
+
+def get_st_et(data, pid, session_file, st_col=0, et_col=0):
+	session_file = os.path.abspath(session_file)
+	if session_file is None or pid is None:
+		st = np.min(data.iloc[:, st_col])
+		et = np.max(data.iloc[:, et_col])
+	else:
+		session_df = pd.read_csv(session_file, parse_dates=[0, 1], infer_datetime_format=True)
+		selected_sessions = session_df.loc[session_df['pid'] == pid, :]
+		if selected_sessions.shape[0] == 0:
+			st = np.min(df.iloc[:, st_col])
+			et = np.max(df.iloc[:, et_col])
+		else:
+			st = np.min(selected_sessions.iloc[:, 0])
+			et = np.max(selected_sessions.iloc[:, 1])
+	
+	return st, et

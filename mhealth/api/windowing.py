@@ -83,8 +83,8 @@ def apply_to_sliding_windows(df, sliding_windows, window_operations, operation_n
 	output_vectors = []
 	ncols_feature = 0
 	for i in indices:
-		st = sliding_windows[i, 0]
-		et = sliding_windows[i, 1]
+		st = sliding_windows.iloc[i, 0]
+		et = sliding_windows.iloc[i, 1]
 		chunk = get_sliding_window_dataframe(df, start_time=st, stop_time=et, start_time_col=start_time_col, stop_time_col=stop_time_col)
 		if send_time_cols:
 			col_names = chunk.columns
@@ -112,8 +112,8 @@ def apply_to_sliding_windows(df, sliding_windows, window_operations, operation_n
 		return output_matrix
 	else:
 		output_df = pd.DataFrame(data=output_matrix, columns=operation_names)
-		output_df.insert(loc=0, column='START_TIME', value=sliding_windows[:,0])
-		output_df.insert(loc=1, column='STOP_TIME', value=sliding_windows[:,1])
+		output_df.insert(loc=0, column='START_TIME', value=sliding_windows.iloc[:,0])
+		output_df.insert(loc=1, column='STOP_TIME', value=sliding_windows.iloc[:,1])
 		return output_df
 
 def get_synced_time_boundaries(*dfs, start_time_cols=None, stop_time_cols=None, set_rule='union'):

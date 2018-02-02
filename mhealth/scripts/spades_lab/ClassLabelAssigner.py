@@ -21,20 +21,73 @@ Four class label:
 Usage:
 	Production: 
 		On all participants
-			`mh -r . process spades_lab.compute_class_labels --par --pattern MasterSynced/**/SPADESInLab*.annotation.csv > DerivedCrossParticipants/SPADESInLab.class.csv`
+			`mh -r . process spades_lab.ClassLabelAssigner --par --pattern SPADES_*/MasterSynced/**/SPADESInLab*.annotation.csv --setname Preprocessed > DerivedCrossParticipants/SPADESInLab.class.csv`
 		On single participant
-			`mh -r . -p SPADES_1 process spades_lab.compute_class_labels --par --pattern MasterSynced/**/SPADESInLab*.annotation.csv > SPADES_1/Derived/SPADESInLab.class.csv`
+			`mh -r . -p SPADES_1 process spades_lab.ClassLabelAssigner --par --pattern MasterSynced/**/SPADESInLab*.annotation.csv --setname Preprocessed > SPADES_1/Derived/SPADESInLab.class.csv`
 
 	Debug:
-		`mh -r . -p SPADES_1 process spades_lab.compute_class_labels --verbose --pattern MasterSynced/**/SPADESInLab*.annotation.csv`
+		`mh -r . -p SPADES_1 process spades_lab.ClassLabelAssigner --verbose --pattern MasterSynced/**/SPADESInLab*.annotation.csv --setname Preprocessed`
 """
 
 import os
 import pandas as pd
 import numpy as np
-import mhealth.api.windowing as windowing
-import mhealth.api.utils as utils
-import mhealth.api.date_time as date_time
+import mhealth.api.windowing as mw
+import mhealth.api.utils as mu
+import mhealth.api.date_time as mdt
+from ..BaseProcessor import AnnotationProcessor
+
+def build(**kwargs):
+	return ClassLabelAssigner(**kwargs).run_on_file
+
+class ClassLabelAssigner(AnnotationProcessor):
+	def __init__(self, verbose=True, independent=False, ws=12800, ss=12800, session_file="DerivedCrossParticipants/sessions.csv", setname='Classlabel'):
+		AnnotationProcessor.__init__(self, verbose=verbose, independent=independent)
+		self.name = 'ClassLabelAssigner'
+		self.setname = setname
+		self.session_file = session_file
+		self.ws = ws
+		self.ss = ss
+	
+	def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
+		st, et = mu.get_st_et(combined_data, self.meta['pid'], self.session_file, st_col=1, et_col=2)
+		if self.verbose:
+			print('Session start time: ' + str(st))
+			print('Session stop time: ' + str(et))
+		# save current file's start and stop time
+		ws, ss = self.ws, self.ss
+		windows = mw.get_sliding_window_boundaries(st, et, ws, ss)
+		chunk_windows_mask = (windows[:,0] >= data_start_indicator) & (windows[:,0] <= data_stop_indicator)
+		chunk_windows = windows[chunk_windows_mask,:]
+		transformers = [
+			lambda x: np.array([_to_posture(x, ws)], dtype=object),
+			lambda x: np.array([_to_indoor_outdoor(x, ws)], dtype=object),
+			lambda x: np.array([_to_activity(x, ws)], dtype=object),
+			lambda x: np.array([_to_hand_gesture(x, ws)], dtype=object)
+		]
+
+		transformer_names = [
+			'posture',
+			'indoor_outdoor',
+			'activity',
+			'hand_gesture'
+		]
+		
+		result_data = mw.apply_to_sliding_windows(df=combined_data, sliding_windows=chunk_windows, window_operations=transformers, operation_names=transformer_names, start_time_col=1, stop_time_col=2, send_time_cols=True, return_dataframe=True, empty_row_placeholder='unknown')
+
+		return result_data
+
+	def _post_process(self, result_data):
+		output_path = mu.generate_output_filepath(self.file, self.setname, 'class')
+		if not os.path.exists(os.path.dirname(output_path)):
+			os.makedirs(os.path.dirname(output_path))
+		result_data.to_csv(output_path, index=False)
+		if self.verbose:
+			print('Saved ' + output_path)
+		result_data['pid'] = self.meta['pid']
+		result_data['annotator'] = self.meta['sid']
+		return result_data
+
 def main(file, verbose=True, prev_file=None, next_file=None, ws=12800, ss=12800, session_file="DerivedCrossParticipants/sessions.csv", **kwargs):
 	file = os.path.abspath(file)
 	if verbose:
