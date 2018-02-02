@@ -118,11 +118,13 @@ def interpolate_for_big_gaps(big_gap_positions, ts, values, ref_ts, sr, method):
     new_ts = np.array([])
     for pos in big_gap_positions:
         # iterate over chunks that are separated by big gaps
-        chunk_ts = ts[pre_pos:pos + 1]
-        chunk_values = values[pre_pos:pos + 1, :]
-        ref_pre_pos = np.where(ref_ts >= chunk_ts[0])[0][0]
-        ref_pos = np.where(ref_ts <= chunk_ts[-1])[0][-1]
-        chunk_ref_ts = ref_ts[ref_pre_pos:ref_pos + 1]
+        chunk_ts = ts[pre_pos:(pos + 1)]
+        chunk_values = values[pre_pos:(pos + 1), :]
+
+        chunk_ref_ts_mask = (ref_ts >= chunk_ts[0]) & (ref_ts <= chunk_ts[-1])
+        chunk_ref_ts = ref_ts[chunk_ref_ts_mask]
+        if len(chunk_ref_ts) == 0:
+            continue
         chunk_new_ts, chunk_new_values = interpolate_regularly(chunk_ts, chunk_values, chunk_ref_ts, sr, method)
         new_values = np.vstack((new_values, chunk_new_values))
         new_ts = np.append(new_ts, chunk_new_ts)

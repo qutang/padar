@@ -28,6 +28,9 @@ class Processor:
 		result_data = self._post_process(result_data)
 		return result_data
 
+	def set_meta(self, meta):
+		self.meta = meta
+
 	def _extract_meta(self, file):
 		file = os.path.normpath(os.path.abspath(file))
 		pid = mhapi.extract_pid(file)

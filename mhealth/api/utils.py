@@ -84,10 +84,12 @@ def clip_dataframe(df, start_time=None, stop_time=None):
 
 def _sampling_rate(df):
 	ts = df.set_index(df.columns[0])
-	minute_counts = ts.groupby(pd.TimeGrouper(freq='Min'))[df.columns[1]].count().values
+	minute_counts = ts.groupby(pd.TimeGrouper(freq='1S'))[df.columns[1]].count().values
 	# drop the first and last window
 	minute_counts = minute_counts[1:-1]
-	return np.mean(minute_counts / 60)
+	# only choose windows that have more than one samples
+	minute_counts = minute_counts[minute_counts > 0]
+	return major_element(minute_counts)
 
 def num_of_rows(file):
 	with open(file, 'r') as f:
@@ -181,5 +183,5 @@ def generate_output_filepath(file, setname, newtype):
 	file = os.path.normpath(os.path.abspath(file))
 	if "MasterSynced" in file:
 		return file.replace('MasterSynced', 'Derived' + os.path.sep + setname).replace(extract_file_type(file), newtype)
-	elif "Derived" in abspath:
+	elif "Derived" in file:
 		return file.replace(extract_derived_folder_name(file), setname).replace(extract_file_type(file), newtype)
