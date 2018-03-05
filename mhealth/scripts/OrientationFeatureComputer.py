@@ -8,12 +8,12 @@ features:
 Usage:
     Production: 
         On all participants
-            `mh -r . process multilocation_2017.compute_features --par --pattern MasterSynced/**/Actigraph*.sensor.csv > DerivedCrossParticipants/multilocation_2017.feature.csv`
+            `mh -r . process OrientationFeatureComputer --par --pattern MasterSynced/**/Actigraph*.sensor.csv > DerivedCrossParticipants/Orientation.feature.csv`
         On single participant
-            `mh -r . -p SPADES_1 process multilocation_2017.compute_features --par --pattern MasterSynced/**/Actigraph*.sensor.csv > SPADES_1/Derived/multilocation_2017.feature.csv`
+            `mh -r . -p SPADES_1 process OrientationFeatureComputer --par --pattern MasterSynced/**/Actigraph*.sensor.csv > SPADES_1/Derived/Orientation.feature.csv`
 
     Debug:
-        `mh -r . -p SPADES_1 process multilocation_2017.compute_features --verbose --pattern MasterSynced/**/Actigraph*.sensor.csv`
+        `mh -r . -p SPADES_1 process OrientationFeatureComputer --verbose --pattern MasterSynced/**/Actigraph*.sensor.csv --setname test_orientationfeatures`
 """
 
 import os
@@ -22,28 +22,26 @@ import numpy as np
 import mhealth.api.numeric_feature as mnf
 import mhealth.api.windowing as mw
 import mhealth.api.utils as mu
-from ..BaseProcessor import SensorProcessor
+from .BaseProcessor import SensorProcessor
 
 def build(**kwargs):
-	return OrientationFeatureComputer(**kwargs).run_on_file
+    return OrientationFeatureComputer(**kwargs).run_on_file
 
 class OrientationFeatureComputer(SensorProcessor):
-    def __init__(self, verbose=True, independent=False, setname='Feature', session_file=None, ws=12800, ss=12800, threshold=0.2, subwins=4):
-        SensorProcessor.__init__(verbose=verbose, independent=independent)
+    def __init__(self, verbose=True, independent=False, setname='Feature', session_file='DerivedCrossParticipants/sessions.csv', ws=12800, ss=12800, subwins=4):
+        SensorProcessor.__init__(self, verbose=verbose, independent=independent)
         self.name = 'OrientationFeatureComputer'
         self.setname = setname
         self.session_file = session_file
         self.ws = ws
         self.ss = ss
-        self.threshold = 0.2
         self.subwins = 4
     
     def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
         st, et = mu.get_st_et(combined_data, self.meta['pid'], self.session_file, st_col=0, et_col=0)
-		ws = self.ws
-		ss = self.ss
-		threshold = self.threshold
-		subwins = self.subwins
+        ws = self.ws
+        ss = self.ss
+        subwins = self.subwins
 
         if self.verbose:
             print('Session start time: ' + str(st))
@@ -71,14 +69,14 @@ class OrientationFeatureComputer(SensorProcessor):
         result_data = mw.apply_to_sliding_windows(df=combined_data, sliding_windows=chunk_windows, window_operations=features, operation_names=feature_names, return_dataframe=True)
         return result_data
 
-	def _post_process(self, result_data):
-		output_path = mu.generate_output_filepath(self.file, self.setname, 'feature', 'Orientation')
-		if not os.path.exists(os.path.dirname(output_path)):
-			os.makedirs(os.path.dirname(output_path))
-			
-		result_data.to_csv(output_path, index=False, float_format='%.6f')
-		if self.verbose:
-			print('Saved feature data to ' + output_path)
-		result_data['pid'] = pid
-		result_data['sid'] = sid
-		return result_data
+    def _post_process(self, result_data):
+        output_path = mu.generate_output_filepath(self.file, self.setname, 'feature', 'Orientation')
+        if not os.path.exists(os.path.dirname(output_path)):
+            os.makedirs(os.path.dirname(output_path))
+            
+        result_data.to_csv(output_path, index=False, float_format='%.6f')
+        if self.verbose:
+            print('Saved feature data to ' + output_path)
+        result_data['pid'] = self.meta['pid']
+        result_data['sid'] = self.meta['sid']
+        return result_data
