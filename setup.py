@@ -11,7 +11,14 @@ setup(
         'jinja2',
         'pweave',
         'pandas',
-        'pathos'
+        'pathos',
+        'transforms3d',
+        'dash',
+        'dash-renderer',
+        'dash-html-components',
+        'dash-core-components',
+        'dash-table-experiments',
+        'plotly'
     ],
     entry_points='''
         [console_scripts]

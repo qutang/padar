@@ -8,11 +8,11 @@ from ._calibraxis import Calibraxis
 from ..utils import clip_dataframe
 
 class Calibrator():
-	def __init__(self, accel_df, angle_diff=30, max_points=12, g_treshold=0.01, chunk_size=1000):
+	def __init__(self, accel_df, angle_diff=30, max_points=12, g_threshold=0.01, chunk_size=1000):
 		self._data = accel_df
 		self._angle_diff = angle_diff
 		self._max_points = max_points
-		self._g_threshold = g_treshold
+		self._g_threshold = g_threshold
 		self._chunk_size = chunk_size
 		self._calibration_chunks = []
 		self._calibrated_data = pd.DataFrame()
