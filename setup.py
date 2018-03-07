@@ -22,6 +22,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        mh=mhealth.cli:main
+        mh=mhealth.mhealth_cli:main
     ''',
 )

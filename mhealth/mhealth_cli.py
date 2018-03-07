@@ -36,7 +36,7 @@ def summary(ctx):
     """
     rel_path = ""
     if ctx.obj['PID']:
-        rel_path = os.path.join(ctx.obj['PID'], 'MasterSynced')
+        rel_path = ctx.obj['PID']
     m = ctx.obj['M']
     result = m.summarize(rel_path, use_parallel=False, verbose=False)
     click.echo(result.to_csv(sep=',', index=False, float_format='%.3f'))

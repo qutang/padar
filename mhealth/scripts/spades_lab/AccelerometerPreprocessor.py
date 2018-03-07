@@ -1,5 +1,10 @@
 """
   preprocess pipeline for multilocation paper 2017
+
+  1. calibration
+  2. timestamp syncing
+  3. clipping
+
   [Insert citation]
   Usage:
      Production

@@ -97,7 +97,6 @@ class M:
         if func is None:
             raise ValueError("You must provide a function to process files")
         entry_files = np.array(glob.glob(pattern, recursive=True))
-
         # sort by pid, sid, date, hour
         pids = np.array(list(map(lambda file: extract_pid(file), entry_files)))
         sids = np.array(list(map(lambda file: extract_id(file), entry_files)))

@@ -48,7 +48,7 @@ class ManualOrientationNormalizer(SensorProcessor):
                     print("Orientation fix: " + x_axis_change + "," + y_axis_change + "," + z_axis_change)
             else:
                 if self.verbose:
-                    print("Does not find orientation fix mapping info for SPADES_" + str(pid) + ":" + sid)
+                    print("Does not find orientation fix mapping info for " + str(pid) + ":" + sid)
                 x_axis_change = "X"
                 y_axis_change = "Y"
                 z_axis_change = "Z"

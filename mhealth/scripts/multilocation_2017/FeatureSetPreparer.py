@@ -26,7 +26,7 @@ Orientation features:
 Usage:
     Production: 
         On all participants
-            `mh -r . process multilocation_2017.FeatureSetPreparer --par --pattern MasterSynced/**/Actigraph*.sensor.csv > DerivedCrossParticipants/multilocation_posture_and_activity.feature.csv`
+            `mh -r . process multilocation_2017.FeatureSetPreparer --par --pattern SPADES_*/MasterSynced/**/Actigraph*.sensor.csv --setname Preprocessed > DerivedCrossParticipants/multilocation_posture_and_activity.feature.csv`
         On single participant
             `mh -r . -p SPADES_1 process multilocation_2017.FeatureSetPreparer --par --pattern MasterSynced/**/Actigraph*.sensor.csv > SPADES_1/Derived/multilocation_posture_and_activity.feature.csv`
 
@@ -93,8 +93,9 @@ class FeatureSetPreparer(SensorProcessor):
 
         timefreq_feature_df = self.timeFreqFeatureComputer._run_on_data(vm_data_filtered, data_start_indicator, data_stop_indicator)
         orientation_feature_df = self.orientationFeatureComputer._run_on_data(combined_data_prepared, data_start_indicator, data_stop_indicator)
-
-        feature_df = timefreq_feature_df.merge(orientation_feature_df, on = ['START_TIME', 'STOP_TIME'])
+        if timefreq_feature_df.empty and orientation_feature_df.empty:
+            return pd.DataFrame()
+        feature_df = timefreq_feature_df.merge(orientation_feature_df)
         return feature_df
     
     def _post_process(self, result_data):

@@ -105,7 +105,6 @@ def apply_to_sliding_windows(df, sliding_windows, window_operations, operation_n
 			if len(output_vector) > ncols_feature:
 				ncols_feature = len(output_vector)
 		output_vectors.append(output_vector)
-	
 	output_vectors = map(lambda vector: np.repeat(empty_row_placeholder, ncols_feature) if len(vector) == 0 else vector, output_vectors)
 	output_matrix = np.stack(output_vectors, axis=0)
 	if not return_dataframe:
