@@ -20,9 +20,8 @@ class Processor:
 		if self.independent:
 			prev_file = None
 			next_file = None
-		
-		data, prev_data, next_data = self._load_file(file, prev_file=prev_file, next_file=next_file)
 		self._extract_meta(file)
+		data, prev_data, next_data = self._load_file(file, prev_file=prev_file, next_file=next_file)
 		combined_data, data_start_indicator, data_stop_indicator = self._merge_data(data, prev_data=prev_data, next_data=next_data)
 		result_data = self._run_on_data(combined_data, data_start_indicator, data_stop_indicator)
 		result_data = self._post_process(result_data)
