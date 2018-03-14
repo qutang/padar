@@ -6,7 +6,7 @@ from sklearn.externals import joblib
 import pickle
 
 class BaseModel:
-    def __init__(self, verbose, feature_set, class_set):
+    def __init__(self, verbose, feature_set=None, class_set=None):
         self._verbose = verbose
         self._feature_set_file = feature_set
         self._class_set_file = class_set
@@ -37,6 +37,11 @@ class BaseModel:
         self._train(**kwargs)
         return self
 
+    def test(self, model_bundle_file, test_set_file, gt_set_file, input_format, verbose, **kwargs):
+        test_df = pd.read_csv(test_set_file, infer_datetime_format=True, parse_dates=[0, 1])
+        self.load_model(input_format, model_bundle_file)
+        self._test(test_df, **kwargs)
+
     def cv(self, **kwargs):
         self._load_set()
         return self._cv(**kwargs)
@@ -48,9 +53,17 @@ class BaseModel:
             with open(output, 'w') as f:
                 pickle.dump(self._bundle, f)
 
+    def export_test(self, output):
+        self._pred_df.to_csv(output, index=False)
+
     def load_model(self, input_format, input):
         if input_format == 'joblib':
             self._bundle = joblib.load(input)
         elif input_format == 'pickle':
             with open(input, 'r') as f:
                 self._bundle = pickle.load(f)
+        self._trained_model = self._bundle['model']
+        self._paras = self._bundle['paras']
+        self._scaler = self._bundle['scaler']
+        self._train_set_file = self._bundle['train_set_file']
+        self._class_set_file = self._bundle['class_set_file']
