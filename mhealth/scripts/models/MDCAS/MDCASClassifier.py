@@ -1,83 +1,119 @@
-
 from ..BaseModel import BaseModel
 from mhealth.api import utils as mu
 import numpy as np
 from sklearn import preprocessing
-from sklearn.ensemble import RandomForestClassifier
+import sklearn.svm as svm
 from sklearn.utils import shuffle
+from sklearn.model_selection import RandomizedSearchCV
+import scipy
+
+def init(verbose, feature_set, class_set):
+    return MDCASClassifier(verbose, feature_set, class_set)
 
 class MDCASClassifier(BaseModel):
     def __init__(self, verbose, feature_set, class_set):
         BaseModel.__init__(self, verbose, feature_set, class_set)
-        self._name = "Single Location Multi-Task Model"
-        self._description = "AR model trained on single limb location using shared knowledge to learn multiple recognitions tasks, all tasks share the same model structure"
+        self._name = "MDCAS classifier"
+        self._description = "AR model trained on acceleromete data from Non-dominant wrist to classify sleep, nonwear, sedentary, ambulation and others"
 
-    def _train(self, **kwargs):
-        '''
-            kwargs['location']: the limb location used for training
-            kwargs['location_mapping_file']: the location mapping file used to find sensor ID from limb location
-            kwargs['classes']: class type used for training, if multiple, separate by comma
-                For example: 
-                    Use "posture,activity" for training a multi-task model for both posture and activity
-        '''
-
-
-        fs = self._feature_set.copy(deep=True)
-        cs = self._class_set.copy(deep=True)
-
-        # location mask
-        self._location = kwargs['location']
-        location_mask = fs['location'] == location
-
-        # class mask
-        selected_classes = kwargs['classes'].split(',')
-
-        # validate dataset
-        train_df = fs[location_mask,:]
-        class_df = cs[location_mask,:]
+    def _preprocess(self, train_df, class_df):
         if train_df.shape[0] != class_df.shape[0]:
             raise ValueError("Training data should have the same amount with class labels")
         if np.any(train_df.iloc[:,0].values != class_df.iloc[:,0].values):
             raise ValueError("Training data and class labels should be sorted and have exactly the same windows")
 
         # clean up dataset
-        train_set = train_df.drop(columns = train_df.columns[0:2] + ['pid', 'sid', 'location']).values
-        class_set = class_df.loc[:, selected_classes].values
+        train_set = train_df.drop(labels = train_df.columns[0:2].tolist() + ['pid', 'sid', 'location'], axis=1).values
+        class_set = class_df.loc[:, "MDCAS"].values
 
         # preprocess traing set
         # 1. standardize
-        # 2. 
-        self._scaler = preprocessing.StandardScaler().fit(train_set)
-        train_set = self._scaler.transform(train_set)
+        self._scaler = preprocessing.MinMaxScaler((-1, 1))
+        train_set = self._scaler.fit_transform(train_set)
         
         # preprocess class set
-        # 1. discard unknown
-        # 2. 
-        unknown_mask = np.any(class_set == 'unknown', axis=1)
-        class_set = class_set[np.logical_not(unknown_mask),:]
+        # 1. discard unknown and transition
+        unknown_mask = np.logical_or(class_set == 'unknown', class_set == 'transition')
+        class_set = class_set[np.logical_not(unknown_mask)]
+        train_set = train_set[np.logical_not(unknown_mask),:]
 
         # randomize
         shuffled_train_set, shuffled_class_set = shuffle(train_set, class_set)
 
+
+        if shuffled_train_set.shape[0] != shuffled_class_set.shape[0]:
+            raise ValueError("Training data should have the same amount with class labels")
+
+        return shuffled_train_set, shuffled_class_set
+
+    def _cv(self, n_folds=10, n_repeats=5):
+        return self 
+
+    def _train(self, **kwargs):
+        '''
+        '''
+
+        train_df = self._feature_set.copy(deep=True)
+        class_df = self._class_set.copy(deep=True)
+
+        shuffled_train_set, shuffled_class_set = self._preprocess(train_df, class_df)        
+
+        print(shuffled_train_set[0:10,:])
+        print(shuffled_class_set[0:10])
+
         self._paras = {
-            max_depth: 10, 
-            random_state: 0, 
-            criterion: 'entropy', 
-            n_estimators: 20, 
-            n_jobs: -1, 
-            verbose: 1
+            'C': 16,
+            'kernel': 'rbf',
+            'gamma': 0.25, 
+            'tol': 0.00001, 
+            'class_weight': "balanced", 
+            'verbose': True,
+            'shrinking': False
         }
 
-        clf = RandomForestClassifier(**paras)
-        clf.fit(shuffled_train_set, shuffled_class_set)
+        tuned_parameters = {
+            'C': scipy.stats.expon(scale=100), 
+            'gamma': scipy.stats.expon(scale=.1),
+            'kernel': ['rbf'], 
+            'class_weight':['balanced', None],
+            'tol': [0.00001]
+        }
 
-        self._trained_model = clf
+        clf = svm.SVC()
+
+        scoring = 'f1_macro'
+
+        hyper_clfs = RandomizedSearchCV(clf, tuned_parameters, cv=5, n_iter=20, scoring=scoring, n_jobs=7, verbose=3, refit=False)
+
+        hyper_clfs.fit(shuffled_train_set, shuffled_class_set)
+
+        print("# Tuning hyper-parameters for %s" % scoring)
+        print()
+
+        print("Best parameters set found on development set:")
+        print()
+        print(hyper_clfs.best_params_)
+        print()
+        print("Scores on development set:")
+        print()
+        means = hyper_clfs.cv_results_['mean_test_score']
+        stds = hyper_clfs.cv_results_['std_test_score']
+        for mean, std, params in zip(means, stds, hyper_clfs.cv_results_['params']):
+            print("%0.3f (+/-%0.03f) for %r"
+                % (mean, std * 2, params))
+        print()
+
+
+        self._paras = hyper_clfs.best_params_
+
+        best_clf = svm.SVC(**self._paras)
+        best_clf.fit(shuffled_train_set, shuffled_class_set)
+        self._trained_model = best_clf
 
         self._bundle = {
             'model': clf,
             'paras': self._paras,
             'scaler': self._scaler,
-            'location': self._location,
             'train_set_file': self._feature_set_file,
             'class_set_file': self._class_set_file
         }

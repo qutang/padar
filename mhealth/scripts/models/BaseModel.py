@@ -28,10 +28,18 @@ class BaseModel:
     def _train(self, **kwargs):
         self._bundle = None
         raise NotImplementedError("Must be implemented in sub classes")
+
+    def _cv(self, n_folds=10, n_repeats=5):
+        raise NotImplementedError("Must be implemented in sub classes")
     
     def train(self, **kwargs):
         self._load_set()
         self._train(**kwargs)
+        return self
+
+    def cv(self, **kwargs):
+        self._load_set()
+        return self._cv(**kwargs)
 
     def export_model(self, output_format, output):
         if output_format == 'joblib':

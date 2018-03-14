@@ -41,10 +41,10 @@ def train(ctx, script, feature_set, class_set, output_format, output, verbose):
         sys.path.insert(0, os.path.dirname(script_path))
         script_module = importlib.import_module(os.path.splitext(os.path.basename(script))[0])
     else:
-        script_module = importlib.import_module('mhealth.scripts.' + script)
+        script_module = importlib.import_module('mhealth.scripts.models.' + script)
     
     model_class = script_module.init(verbose, feature_set, class_set)
-    trained_model = model_class.train(**kwargs)
+    model_class.train(**kwargs)
     model_class.export(output_format, output)
 
 main.add_command(train)
