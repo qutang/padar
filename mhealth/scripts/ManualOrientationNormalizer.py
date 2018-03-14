@@ -32,7 +32,7 @@ class ManualOrientationNormalizer(SensorProcessor):
         pid = self.meta['pid']
         sid = self.meta['sid']
         orientation_fix_file = self.orientation_fix_file
-        if orientation_fix_file is None or pid is None or sid is None:
+        if orientation_fix_file is None or orientation_fix_file == "None" or pid is None or sid is None:
             x_axis_change = "X"
             y_axis_change = "Y"
             z_axis_change = "Z"

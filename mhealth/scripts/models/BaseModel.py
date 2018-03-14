@@ -26,7 +26,7 @@ class BaseModel:
         self._class_set = pd.read_csv(self._class_set_file, infer_datetime_format=True, parse_dates=[0, 1])
 
     def _train(self, **kwargs):
-        self._trained_model = None
+        self._bundle = None
         raise NotImplementedError("Must be implemented in sub classes")
     
     def train(self, **kwargs):
@@ -35,14 +35,14 @@ class BaseModel:
 
     def export_model(self, output_format, output):
         if output_format == 'joblib':
-            joblib.dump(self._trained_model, output)
+            joblib.dump(self._bundle, output)
         elif output_format == 'pickle':
             with open(output, 'w') as f:
-                pickle.dump(self._trained_model, f)
+                pickle.dump(self._bundle, f)
 
     def load_model(self, input_format, input):
         if input_format == 'joblib':
-            self._trained_model = joblib.load(input)
+            self._bundle = joblib.load(input)
         elif input_format == 'pickle':
             with open(input, 'r') as f:
-                self._trained_model = pickle.load(f)
+                self._bundle = pickle.load(f)

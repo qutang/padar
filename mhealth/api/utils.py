@@ -61,6 +61,8 @@ def extract_pid(abspath):
 		return os.path.basename(os.path.dirname(abspath.split('MasterSynced')[0]))
 	elif "Derived" in abspath:
 		return os.path.basename(os.path.dirname(abspath.split('Derived')[0]))
+	else:
+		return os.path.basename(os.path.dirname(abspath))
 
 def sampling_rate(file):
 	df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
@@ -185,6 +187,8 @@ def generate_output_filepath(file, setname, newtype=None, datatype=None):
 		new_file = file.replace('MasterSynced', 'Derived' + os.path.sep + setname)
 	elif "Derived" in file:
 		new_file = file.replace(extract_derived_folder_name(file), setname)
+	else:
+		new_file = file.replace(os.path.basename(file), 'Derived' + os.path.sep + setname + os.path.sep + os.path.basename(file))
 
 	if newtype is not None:
 		new_file = new_file.replace(extract_file_type(file), newtype)
@@ -193,19 +197,42 @@ def generate_output_filepath(file, setname, newtype=None, datatype=None):
 	
 	return new_file
 
-def get_st_et(data, pid, session_file, st_col=0, et_col=0):
-	session_file = os.path.abspath(session_file)
-	if session_file is None or pid is None:
+def get_st_et(data, pid, session_file=None, st_col=0, et_col=0):
+	if session_file is None or session_file == "None" or pid is None:
 		st = np.min(data.iloc[:, st_col])
 		et = np.max(data.iloc[:, et_col])
 	else:
+		session_file = os.path.abspath(session_file)
 		session_df = pd.read_csv(session_file, parse_dates=[0, 1], infer_datetime_format=True)
 		selected_sessions = session_df.loc[session_df['pid'] == pid, :]
 		if selected_sessions.shape[0] == 0:
-			st = np.min(df.iloc[:, st_col])
-			et = np.max(df.iloc[:, et_col])
+			st = np.min(selected_sessions.iloc[:, st_col])
+			et = np.max(selected_sessions.iloc[:, et_col])
 		else:
 			st = np.min(selected_sessions.iloc[:, 0])
 			et = np.max(selected_sessions.iloc[:, 1])
 	
 	return st, et
+
+def get_sid_from_location(pid, location, location_mapping_file):
+	location_mapping_file = os.path.abspath(location_mapping_file)
+	if location_mapping_file is None or location is None or pid is None:
+		return None
+	else:
+		location_mapping_df = pd.read_csv(location_mapping_file)
+		selected_mapping = location_mapping_df.loc[(location_mapping_df['PID'] == pid) & (location_mapping_df['LOCATION'] == location), 'SENSOR_ID']
+		if selected_mapping.shape[0] == 0:
+			return None
+		return selected_mapping.values[0]
+
+def get_location_from_sid(pid, sid, location_mapping_file):
+	if location_mapping_file is None or location_mapping_file == 'None' or sid is None or pid is None:
+		return None
+	else:
+		location_mapping_file = os.path.abspath(location_mapping_file)
+		location_mapping_df = pd.read_csv(location_mapping_file)
+		selected_mapping = location_mapping_df.loc[(location_mapping_df['PID'] == pid) & (location_mapping_df['SENSOR_ID'] == sid), 'LOCATION']
+		if selected_mapping.shape[0] == 0:
+			return "unknown"
+		return selected_mapping.values[0]
+		

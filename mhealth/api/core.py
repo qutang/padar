@@ -121,13 +121,21 @@ class M:
             # func_partial = partial(zipped_func, verbose=verbose, **kwargs)
             # result = self._pool.map(func_partial, zip(entry_files, prev_files, next_files))
             result = self._pool.map(zipped_func, zip(entry_files, prev_files, next_files))
+            col_order = []
+            for entry in result:
+                if len(entry.columns) > len(col_order):
+                    col_order = entry.columns
         else:
             result = []
+            col_order = []
             for file, prev_file, next_file in zip(entry_files, prev_files, next_files):
                 # entry_result = func(file, verbose=verbose, prev_file=prev_file, next_file=next_file, **kwargs)
                 entry_result = func(verbose=verbose, **kwargs)(file, prev_file=prev_file, next_file=next_file)
                 result.append(entry_result)
-        result = pd.concat(result) 
+                if len(entry_result.columns) > len(col_order):
+                    col_order = entry_result.columns
+        result = pd.concat(result, ignore_index=True)
+        result = result[col_order]
         return result
 
     def _get_prev_files(self, entry_files, pids, sids):

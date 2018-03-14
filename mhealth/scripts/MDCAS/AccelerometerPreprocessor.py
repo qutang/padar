@@ -2,13 +2,11 @@
   preprocess pipeline for multilocation paper 2017
 
   1. calibration
-  2. timestamp syncing
-  3. clipping
 
   [Insert citation]
   Usage:
      Production
-        `mh -r . process --par --verbose --pattern SPADES_*/MasterSynced/**/Actigraph*.sensor.csv spades_lab.AccelerometerPreprocessor --setname Preprocessed`
+        `mh -r . process --par --verbose --pattern *WRAW/**/Actigraph*.sensor.csv MDCAS.AccelerometerPreprocessor --setname Preprocessed`
         `mh -r . -p SPADES_1 process --par --verbose --pattern MasterSynced/**/Actigraph*.sensor.csv spades_lab.AccelerometerPreprocessor --setname Preprocessed`
 
     Debug
@@ -20,14 +18,13 @@ import pandas as pd
 import mhealth.scripts as ms
 import mhealth.api as mhapi
 import mhealth.api.utils as mu
-from .TimestampSyncer import TimestampSyncer
 from ..BaseProcessor import SensorProcessor
 
 def build(**kwargs):
     return AccelerometerProcessor(**kwargs).run_on_file
 
 class AccelerometerProcessor(SensorProcessor):
-    def __init__(self, verbose=True, independent=False, setname='Proprocessed'):
+    def __init__(self, verbose=True, independent=True, setname='Preprocessed'):
         SensorProcessor.__init__(self, verbose=verbose, independent=independent)
         self.name = 'AccelerometerProcessor'
         self.setname = setname
@@ -36,12 +33,6 @@ class AccelerometerProcessor(SensorProcessor):
         self.pipeline = list()
         calibrator = ms.AccelerometerCalibrator(verbose=self.verbose, independent=self.independent, static_chunk_file='DerivedCrossParticipants/static_chunks.csv')
         self.pipeline.append(calibrator)
-
-        syncer = TimestampSyncer(verbose=self.verbose, independent=self.independent, sync_file='DerivedCrossParticipants/offset_mapping.csv')
-        self.pipeline.append(syncer)
-
-        clipper = ms.SensorClipper(verbose=self.verbose, independent=self.independent, session_file='DerivedCrossParticipants/sessions.csv')
-        self.pipeline.append(clipper)
 
     def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
         result_data = combined_data.copy(deep=True)

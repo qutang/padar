@@ -34,6 +34,7 @@ class SensorClipper(SensorProcessor):
         start_time = self.start_time
         stop_time = self.stop_time
         session_file = self.session_file
+
         if start_time is None and stop_time is None:
             if session_file is not None and pid is not None:
                 session_file = os.path.normpath(os.path.abspath(session_file))
@@ -55,8 +56,11 @@ class SensorClipper(SensorProcessor):
                 st = start_time.to_datetime64().astype('datetime64[ms]')
             else:
                 raise ValueError("Unknown timestamp type: " + str(type(start_time)))
+            if st < data_start_indicator:
+                st = data_start_indicator
         else:
             st = start_time
+
         if stop_time is not None:
             if type(stop_time) is str:
                 et = pd.to_datetime(
@@ -66,8 +70,11 @@ class SensorClipper(SensorProcessor):
                 et = stop_time.to_datetime64().astype('datetime64[ms]')
             else:
                 raise ValueError("Unknown timestamp type: " + str(type(stop_time)))
+            if et > data_stop_indicator:
+                et = data_stop_indicator
         else:
             et = stop_time
+
         clipped_df = mhapi.clip_dataframe(combined_data, start_time=st, stop_time=et)
         if self.verbose:
             print("Finish clipping data...")

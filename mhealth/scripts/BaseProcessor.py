@@ -91,6 +91,10 @@ class SensorProcessor(Processor):
 		return df, prev_df, next_df
 	
 	def _merge_data(self, data, prev_data=None, next_data=None):
+
+		if data.empty:
+			return pd.DataFrame(), None, None
+
 		columns = data.columns
 		if prev_data is None:
 			prev_data = pd.DataFrame()
@@ -100,7 +104,7 @@ class SensorProcessor(Processor):
 		combined_data = pd.concat([prev_data, data, next_data], axis=0, ignore_index=True)
 		combined_data = combined_data[columns]
 		data_start_indicator = data.iloc[0, 0].to_datetime64().astype('datetime64[h]')
-		data_stop_indicator = data.iloc[data.shape[0]-1, 0].to_datetime64().astype('datetime64[h]') + np.timedelta64(1, 'h')
+		data_stop_indicator = data.iloc[0, 0].to_datetime64().astype('datetime64[h]') + np.timedelta64(1, 'h')
 		return combined_data, data_start_indicator, data_stop_indicator
 
 class AnnotationProcessor(Processor):

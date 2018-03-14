@@ -63,7 +63,7 @@ class OrientationFeatureComputer(SensorProcessor):
         ]
 
         windows = mw.get_sliding_window_boundaries(start_time=st, stop_time=et, window_duration=ws, step_size=ss)
-        chunk_windows_mask = (windows[:,0] >= data_start_indicator) & (windows[:,0] <= data_stop_indicator)
+        chunk_windows_mask = (windows[:,0] >= data_start_indicator) & (windows[:,0] < data_stop_indicator)
         chunk_windows = windows[chunk_windows_mask,:]
         if len(chunk_windows) == 0:
             return pd.DataFrame()

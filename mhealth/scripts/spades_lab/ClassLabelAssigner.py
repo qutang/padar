@@ -21,7 +21,7 @@ Four class label:
 Usage:
 	Production: 
 		On all participants
-			`mh -r . process spades_lab.ClassLabelAssigner --par --pattern SPADES_*/MasterSynced/**/SPADESInLab*.annotation.csv --setname Preprocessed > DerivedCrossParticipants/SPADESInLab.class.csv`
+			`mh -r . process spades_lab.ClassLabelAssigner --par --pattern SPADES_*/MasterSynced/**/SPADESInLab*.annotation.csv --setname Preprocessed > DerivedCrossParticipants/Feature_sets/SPADESInLab.class.csv`
 		On single participant
 			`mh -r . -p SPADES_1 process spades_lab.ClassLabelAssigner --par --pattern MasterSynced/**/SPADESInLab*.annotation.csv --setname Preprocessed > SPADES_1/Derived/SPADESInLab.class.csv`
 
@@ -57,10 +57,12 @@ class ClassLabelAssigner(AnnotationProcessor):
 		# save current file's start and stop time
 		ws, ss = self.ws, self.ss
 		windows = mw.get_sliding_window_boundaries(st, et, ws, ss)
-		chunk_windows_mask = (windows[:,0] >= data_start_indicator) & (windows[:,0] <= data_stop_indicator)
+		chunk_windows_mask = (windows[:,0] >= data_start_indicator) & (windows[:,0] < data_stop_indicator)
 		chunk_windows = windows[chunk_windows_mask,:]
 		transformers = [
 			lambda x: np.array([_to_posture(x, ws)], dtype=object),
+			lambda x: np.array([_to_four_classes(x, ws)], dtype=object),
+			lambda x: np.array([_to_mdcas(x, ws)], dtype=object),
 			lambda x: np.array([_to_indoor_outdoor(x, ws)], dtype=object),
 			lambda x: np.array([_to_activity(x, ws)], dtype=object),
 			lambda x: np.array([_to_hand_gesture(x, ws)], dtype=object)
@@ -68,6 +70,8 @@ class ClassLabelAssigner(AnnotationProcessor):
 
 		transformer_names = [
 			'posture',
+			'four_classes',
+			'MDCAS',
 			'indoor_outdoor',
 			'activity',
 			'hand_gesture'
@@ -209,6 +213,48 @@ def _to_activity(annotations, ws):
 			return "sitting still"
 		elif label == "still" or 'standing' == label:
 			return "standing naturally"
+		else:
+			return 'unknown'
+
+def _to_four_classes(annotations, ws):
+	start_times = np.array(annotations[:,1], dtype='datetime64[ms]')
+	stop_times = np.array(annotations[:,2], dtype='datetime64[ms]')
+	time_diffs = (stop_times - start_times) / np.timedelta64(1, 's')
+	labels = np.unique(annotations[:,3])
+	label = ','.join(labels)
+	label = label.lower().strip()
+	if(np.any(time_diffs < ws / 1000)):
+		return "transition"
+	else:
+		if label == 'jumping jacks' or 'laundry' in label or 'sweep' in label or 'frisbee' in label or 'shelf' in label or 'vend' in label:
+			return "others"
+		elif "sit" in label or "stand" in label or "lying" in label or "reclin" in label or 'elevator' in label or 'escalator' in label:
+			return 'sedentary'
+		elif "stair" in label or "treadmill" in label or "walk" in label:
+			return "ambulation"
+		elif 'bik' in label:
+			return "cycling"
+		else:
+			return 'unknown'
+
+def _to_mdcas(annotations, ws):
+	start_times = np.array(annotations[:,1], dtype='datetime64[ms]')
+	stop_times = np.array(annotations[:,2], dtype='datetime64[ms]')
+	time_diffs = (stop_times - start_times) / np.timedelta64(1, 's')
+	labels = np.unique(annotations[:,3])
+	label = ','.join(labels)
+	label = label.lower().strip()
+	if(np.any(time_diffs < ws / 1000)):
+		return "transition"
+	else:
+		if label == 'jumping jacks' or 'laundry' in label or 'sweep' in label or 'frisbee' in label or 'shelf' in label or 'vend' in label or 'bik' in label:
+			return "others"
+		elif "sit" in label or "stand" in label or "reclin" in label or 'elevator' in label or 'escalator' in label:
+			return 'sedentary'
+		elif "stair" in label or "treadmill" in label or "walk" in label or "run" in label:
+			return "ambulation"
+		elif "lying" in label:
+			return "sleep"
 		else:
 			return 'unknown'
 
