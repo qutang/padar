@@ -135,7 +135,7 @@ class MDCASClassifier(BaseModel):
         if kwargs['prob'] in ['True', '1']:
             pred_prob_set = self._trained_model.predict_proba(test_set)
             pred_max_prob_set = np.max(pred_prob_set, axis=1)
-            pred_set_label_indices = np.argmax(pred_prob_set)
+            pred_set_label_indices = np.argmax(pred_prob_set, axis=1)
             pred_set = labels[pred_set_label_indices]
         else:
             pred_set = self._trained_model.predict(test_set)

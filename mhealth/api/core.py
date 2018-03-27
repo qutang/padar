@@ -122,6 +122,7 @@ class M:
             # result = self._pool.map(func_partial, zip(entry_files, prev_files, next_files))
             result = self._pool.map(zipped_func, zip(entry_files, prev_files, next_files))
             col_order = []
+            
             for entry in result:
                 if len(entry.columns) > len(col_order):
                     col_order = entry.columns

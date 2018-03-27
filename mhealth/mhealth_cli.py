@@ -150,7 +150,7 @@ def process(ctx, script, pattern, par, verbose):
         use_parallel = False
     m = ctx.obj['M']
     result = m.process(rel_pattern, func, use_parallel=use_parallel, verbose=verbose, **kwargs)
-    click.echo(result.to_csv(sep=',', index=False))
+    click.echo(result.to_csv(sep=',', index=False, float_format='%.3f'))
     if script.endswith('.py'):
         sys.path.remove(os.path.dirname(script_path))
 
