@@ -65,6 +65,7 @@ class ClassLabelAssigner(AnnotationProcessor):
 			lambda x: np.array([_to_mdcas(x, ws)], dtype=object),
 			lambda x: np.array([_to_indoor_outdoor(x, ws)], dtype=object),
 			lambda x: np.array([_to_activity(x, ws)], dtype=object),
+			lambda x: np.array([_to_intensity(x, ws)], dtype=object),
 			lambda x: np.array([_to_hand_gesture(x, ws)], dtype=object)
 		]
 
@@ -74,6 +75,7 @@ class ClassLabelAssigner(AnnotationProcessor):
 			'MDCAS',
 			'indoor_outdoor',
 			'activity',
+			'activity_intensity',
 			'hand_gesture'
 		]
 		
@@ -110,6 +112,119 @@ def _to_posture(annotations, ws):
 			return 'lying'
 		else:
 			return 'unknown'
+
+def _to_intensity(annotations, ws):
+	start_times = np.array(annotations[:,1], dtype='datetime64[ms]')
+	stop_times = np.array(annotations[:,2], dtype='datetime64[ms]')
+	time_diffs = (stop_times - start_times) / np.timedelta64(1, 's')
+	labels = np.unique(annotations[:,3])
+	label = ','.join(labels)
+	label = label.lower().strip()
+	if(np.any(time_diffs < ws / 1000)):
+		return "transition"
+	else:
+		if label == 'jumping jacks':
+			met = 8.0
+		elif "sitting" in label and 'writing' in label:
+			met = 1.3
+		elif 'stand' in label and 'writ' in label:
+			met = 1.8
+		elif 'sit' in label and 'story' in label:
+			met = 1.5
+		elif "reclin" in label and 'story' in label:
+			met = 1.3
+		elif ('reclin' in label or 'sit' in label) and ('text' in label):
+			met = 1.3
+		elif "stand" in label and "story" in label and 'wait' not in label:
+			met = 1.3
+		elif 'sit' in label and 'web' in label:
+			met = 1.3
+		elif "stand" in label and "web" in label:
+			met = 1.8
+		elif 'stair' in label and 'down' in label:
+		  met = 3.5
+		elif 'stair' in label and 'up' in label and 'phone' in label:
+			met = 5.0
+		elif 'stair' in label and 'up' in label:
+			met = 5.0
+		elif 'mbta' in label and 'stand' in label:
+			met = 1.5
+		elif 'mbta' in label and 'sit' in label:
+			met = 1.3
+		elif 'bik' in label and 'outdoor' in label:
+			met = 6.8
+		elif 'bik' in label and 'stationary' in label:
+			met = 3.5
+		elif 'treadmill' in label and '1' in label and 'arms' in label:
+			met = 2.0
+		elif 'treadmill' in label and '2' in label and 'arms' in label:
+			met = 2.8
+		elif 'treadmill' in label and '3.5' in label and 'text' in label and 'arms' not in label:
+			met = 4.3
+		elif 'treadmill' in label and 'phone' in label and 'arms' not in label:
+			met = 4.0
+		elif 'treadmill' in label and 'bag' in label and 'arms' not in label:
+			met = 4.5
+		elif 'treadmill' in label and 'story' in label and 'arms' not in label:
+			met = 4.0
+		elif 'treadmill' in label and 'drink' in label and 'arms' not in label:
+			met = 4.0
+		elif ('treadmill' in label or 'walk' in label) and ('3.5' in label or '3' in label) and 'arms' not in label:
+			met = 4.0
+		elif 'treadmill' in label and '5.5' in label:
+			met = 10.5
+		elif 'laundry' in label:
+			met = 2.0
+		elif 'sweep' in label:
+			met = 3.3
+		elif 'frisbee' in label:
+			met = 3.0
+		elif 'shelf' in label and 'load' in label:
+			met = 3.5
+		elif 'lying' in label:
+			met = 1.3
+		elif 'elevator' in label and 'up' in label:
+			met = 1.5
+		elif 'elevator' in label and 'down' in label:
+			met = 1.5
+		elif 'escalator' in label and 'up' in label:
+			met = 1.5
+		elif 'escalator' in label and 'down' in label:
+			met = 1.5
+		elif "walk" in label and 'bag' in label and 'story' in label:
+			met = 3.8
+		elif "walk" in label and 'bag' in label:
+			met = 3.8
+		elif "walk" in label and 'story' in label:
+			met = 3.8
+		elif "walk" in label and 'text' in label:
+			met = 3.8
+		elif label == 'walking':
+			met = 3.8
+		elif 'outdoor' in label and 'stand' in label:
+			met = 1.5
+		elif 'vend' in label:
+			met = 2.5
+		elif 'light' in label and 'stand' in label:
+			met = 1.5
+		elif label == 'standing':
+			met = 1.5
+		elif 'sit' in label and 'wait' in label:
+			met = 1.3
+		elif label == 'sitting' or ('sit' in label and 'still' in label):
+			met = 1.3
+		elif label == "still" or 'standing' == label:
+			met = 1.5
+		else:
+			return 'unknown'
+	if met <= 1.5:
+		return "sedentary"
+	elif met <= 4.0:
+		return "light"
+	elif met <= 7.0:
+		return "moderate"
+	else:
+		return "vigorous"
 
 def _to_activity(annotations, ws):
 	start_times = np.array(annotations[:,1], dtype='datetime64[ms]')

@@ -18,7 +18,8 @@ setup(
         'dash-html-components',
         'dash-core-components',
         'dash-table-experiments',
-        'plotly'
+        'plotly',
+        'jellyfish'
     ],
     entry_points='''
         [console_scripts]
