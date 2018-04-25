@@ -10,9 +10,10 @@ import mhealth.api as mhapi
 import os
 
 class Processor:
-	def __init__(self, verbose=True, independent=True):
+	def __init__(self, verbose=True, violate=False, independent=True):
 		self.verbose = verbose
 		self.independent = independent
+		self.violate = violate
 		self.name = 'BaseProcessor'
 	
 	def run_on_file(self, file, prev_file=None, next_file=None):
@@ -33,21 +34,26 @@ class Processor:
 	def _extract_meta(self, file):
 		file = os.path.normpath(os.path.abspath(file))
 		pid = mhapi.extract_pid(file)
-		data_type = mhapi.extract_datatype(file)
-		file_type = mhapi.extract_file_type(file)
-		sensor_type = mhapi.extract_sensortype(file)
-		sid = mhapi.extract_id(file)
-		date = mhapi.extract_date(file)
-		hour = mhapi.extract_hour(file)
-		meta = dict(
-			pid=pid,
-			data_type=data_type,
-			file_type=file_type,
-			sensor_type=sensor_type,
-			sid=sid,
-			date=date,
-			hour=hour
-		)
+		if not self.violate:
+			data_type = mhapi.extract_datatype(file)
+			file_type = mhapi.extract_file_type(file)
+			sensor_type = mhapi.extract_sensortype(file)
+			sid = mhapi.extract_id(file)
+			date = mhapi.extract_date(file)
+			hour = mhapi.extract_hour(file)
+			meta = dict(
+				pid=pid,
+				data_type=data_type,
+				file_type=file_type,
+				sensor_type=sensor_type,
+				sid=sid,
+				date=date,
+				hour=hour
+			)
+		else:
+			meta = dict(
+				pid=pid
+			)
 		self.meta = meta
 
 	def _load_file(self, file, prev_file=None, next_file=None):
@@ -66,8 +72,8 @@ class Processor:
 		return self.name
 
 class SensorProcessor(Processor):
-	def __init__(self, verbose=True, independent=True):
-		Processor.__init__(self, verbose, independent)
+	def __init__(self, verbose=True, violate=False, independent=True):
+		Processor.__init__(self, verbose, violate, independent)
 		self.name = 'SensorProcessor'
 	
 	def _load_file(self, file, prev_file=None, next_file=None):

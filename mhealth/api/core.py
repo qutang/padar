@@ -93,30 +93,39 @@ class M:
             self._pool.close()
         return result
 
-    def _process(self, pattern, func, use_parallel=False, verbose=False, **kwargs):
+    def _process(self, pattern, func, use_parallel=False, verbose=False, violate=False, **kwargs):
         if func is None:
             raise ValueError("You must provide a function to process files")
         entry_files = np.array(glob.glob(pattern, recursive=True))
         # sort by pid, sid, date, hour
-        pids = np.array(list(map(lambda file: extract_pid(file), entry_files)))
-        sids = np.array(list(map(lambda file: extract_id(file), entry_files)))
-        dates = np.array(list(map(lambda file: extract_date(file), entry_files)))
-        hours = np.array(list(map(lambda file: extract_hour(file), entry_files)))
-        sorted_inds = np.lexsort((hours, dates, sids, pids)).tolist()
-        entry_files = entry_files[sorted_inds].tolist()
-        pids = pids[sorted_inds].tolist()
-        sids = sids[sorted_inds].tolist()
-        dates = dates[sorted_inds].tolist()
-        hours = hours[sorted_inds].tolist()
-        prev_files = self._get_prev_files(entry_files, pids, sids)
-        next_files = self._get_next_files(entry_files, pids, sids)
+        if violate == False:
+            pids = np.array(list(map(lambda file: extract_pid(file), entry_files)))
+            sids = np.array(list(map(lambda file: extract_id(file), entry_files)))
+            dates = np.array(list(map(lambda file: extract_date(file), entry_files)))
+            hours = np.array(list(map(lambda file: extract_hour(file), entry_files)))
+            sorted_inds = np.lexsort((hours, dates, sids, pids)).tolist()
+            pids = pids[sorted_inds].tolist()
+            sids = sids[sorted_inds].tolist()
+            dates = dates[sorted_inds].tolist()
+            hours = hours[sorted_inds].tolist()
+            prev_files = self._get_prev_files(entry_files, pids, sids)
+            next_files = self._get_next_files(entry_files, pids, sids)
+            entry_files = entry_files[sorted_inds].tolist()
+        else:
+            prev_files = [None] * len(entry_files)
+            next_files = [None] * len(entry_files)
+            sids = ["unknown"] * len(entry_files)
+            pids = np.array(list(map(lambda file: extract_pid(file), entry_files)))
+            dates = ['unknown'] * len(entry_files)
+            hours = ['unknown'] * len(entry_files)
+        
         # parallel version
         if use_parallel:
             # def zipped_func(a_zip, verbose=False, **kwargs):
             #     return func(a_zip[0], verbose=verbose, prev_file=a_zip[1], next_file=a_zip[2], **kwargs)
             
             def zipped_func(a_zip):
-                return func(verbose=verbose, **kwargs)(a_zip[0], prev_file=a_zip[1], next_file=a_zip[2])
+                return func(verbose=verbose, violate=True, **kwargs)(a_zip[0], prev_file=a_zip[1], next_file=a_zip[2])
 
             # func_partial = partial(zipped_func, verbose=verbose, **kwargs)
             # result = self._pool.map(func_partial, zip(entry_files, prev_files, next_files))
@@ -131,7 +140,7 @@ class M:
             col_order = []
             for file, prev_file, next_file in zip(entry_files, prev_files, next_files):
                 # entry_result = func(file, verbose=verbose, prev_file=prev_file, next_file=next_file, **kwargs)
-                entry_result = func(verbose=verbose, **kwargs)(file, prev_file=prev_file, next_file=next_file)
+                entry_result = func(verbose=verbose, violate=violate, **kwargs)(file, prev_file=prev_file, next_file=next_file)
                 result.append(entry_result)
                 if len(entry_result.columns) > len(col_order):
                     col_order = entry_result.columns
@@ -140,6 +149,7 @@ class M:
         return result
 
     def _get_prev_files(self, entry_files, pids, sids):
+        print(entry_files)
         entry_files = np.array(entry_files)
         prev_files = np.copy(entry_files)
         prev_files = np.roll(prev_files, 1)

@@ -112,8 +112,9 @@ def quality_check(ctx):
 @click.option('--pattern', help='glob wild card pattern (relative path) to match files to be processed. If omit, will process all files in MasterSynced folder.')
 @click.option('--par', help='use parallel or not', is_flag=True)
 @click.option('--verbose', help='turn on verbose', is_flag=True)
+@click.option('--violate', help='violate mhealth convention except for PID extraction', is_flag=True)
 @click.pass_context
-def process(ctx, script, pattern, par, verbose):
+def process(ctx, script, pattern, par, verbose, violate):
     """
         Function to apply script to any files matched the pattern
 
@@ -149,7 +150,7 @@ def process(ctx, script, pattern, par, verbose):
     else:
         use_parallel = False
     m = ctx.obj['M']
-    result = m.process(rel_pattern, func, use_parallel=use_parallel, verbose=verbose, **kwargs)
+    result = m.process(rel_pattern, func, use_parallel=use_parallel, verbose=verbose, violate=violate, **kwargs)
     click.echo(result.to_csv(sep=',', index=False, float_format='%.3f'))
     if script.endswith('.py'):
         sys.path.remove(os.path.dirname(script_path))

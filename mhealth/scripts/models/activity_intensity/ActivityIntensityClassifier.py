@@ -71,14 +71,14 @@ class ActivityIntensityClassifier(BaseModel):
         print(shuffled_class_set[0:10])
 
         self._paras = {
-            'C': 262.48813329580832, 
+            'C': 133.51340892606692, 
             'class_weight': None, 
-            'gamma': 0.17399718482493676, 
+            'gamma': 0.25871567945546098, 
             'kernel': 'rbf', 
             'tol': 1e-05,
-            'verbose': True,
+            'verbose': True, 
             'probability': True
-        }
+            }
         if kwargs['hyper_search'] in ['True', '1']:
             tuned_parameters = {
                 'C': scipy.stats.expon(scale=100), 
@@ -112,6 +112,8 @@ class ActivityIntensityClassifier(BaseModel):
                     % (mean, std * 2, params))
             print()
             self._paras = hyper_clfs.best_params_
+            self._paras['probability'] = True
+            self._paras['verbose'] = True
 
         best_clf = svm.SVC(**self._paras)
         best_clf.fit(shuffled_train_set, shuffled_class_set)
