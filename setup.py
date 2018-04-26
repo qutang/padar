@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='padar',
-    version='1.0.3',
+    version='1.0.4',
     description='Processing Accelerometer Data and Do Activity Recognition',
     long_description_content_type='text/markdown',
     url='https://github.com/qutang/padar',
@@ -48,9 +48,9 @@ setup(
     ],
     python_requires='>=3',
     entry_points={
-        'console_script': [
+        'console_scripts': [
             'pad=padar.mhealth_cli:main',
-            'dar=padar.ar_cli:main'
+            'dar=padar.ar_cli:main',
         ]
     },  
 )
