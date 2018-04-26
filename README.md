@@ -1,4 +1,4 @@
-# `radar` python package
+# `padar` python package
 
 Short for _Processing Accelerometer Data and Activity Recognition_
 
