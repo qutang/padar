@@ -9,6 +9,6 @@ This package is for,
 
 # Commandline interfaces
 
-1. `rad`: batch processing interface
-2. `par`: machine learning training and testing interface
+1. `pad`: batch processing interface
+2. `dar`: machine learning training and testing interface
 
