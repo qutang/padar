@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='padar',
-    version='1.0.1',
+    version='1.0.2',
     description='Processing Accelerometer Data and Do Activity Recognition',
     long_description_content_type='text/markdown',
     url='https://github.com/qutang/padar',
