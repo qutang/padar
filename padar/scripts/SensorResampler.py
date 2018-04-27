@@ -13,8 +13,8 @@ Usage:
 
 import os
 import pandas as pd
-from mhealth.api.interpolate import interpolate
-import mhealth.api.utils as mu
+from ..api.interpolate import interpolate
+from ..api import utils as mu
 from .BaseProcessor import SensorProcessor
 
 def build(**kwargs):

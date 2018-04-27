@@ -32,9 +32,9 @@ Usage:
 import os
 import pandas as pd
 import numpy as np
-import mhealth.api.windowing as mw
-import mhealth.api.utils as mu
-import mhealth.api.date_time as mdt
+from ...api import windowing as mw
+from ...api import utils as mu
+from ...api import date_time as mdt
 from ..BaseProcessor import AnnotationProcessor
 
 def build(**kwargs):

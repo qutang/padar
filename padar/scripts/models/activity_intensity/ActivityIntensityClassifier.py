@@ -1,5 +1,5 @@
 from ..BaseModel import BaseModel
-from mhealth.api import utils as mu
+from ....api import utils as mu
 import numpy as np
 from sklearn import preprocessing
 import sklearn.svm as svm

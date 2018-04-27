@@ -4,9 +4,9 @@ Script to apply different numerical transformation to raw sensor data
 
 import os
 import pandas as pd
-import mhealth.api.filter as mf 
-import mhealth.api.utils as mu
-import mhealth.api.numeric_transformation as mnt
+from ..api import filter as mf 
+from ..api import utils as mu
+from ..api import numeric_transformation as mnt
 from .BaseProcessor import SensorProcessor
 
 def build(**kwargs):

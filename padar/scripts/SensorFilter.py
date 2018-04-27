@@ -13,8 +13,8 @@ Usage:
 
 import os
 import pandas as pd
-import mhealth.api.filter as mf 
-import mhealth.api.utils as mu
+from ..api import filter as mf 
+from ..api import utils as mu
 from .BaseProcessor import SensorProcessor
 
 def build(**kwargs):
@@ -34,6 +34,8 @@ class SensorFilter(SensorProcessor):
     def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
         ftype = self.ftype
         sr = mu._sampling_rate(combined_data)
+        if self.verbose:
+            print('sampling rate is: ' + str(sr))
         if self.low_cutoff is None and self.high_cutoff is None:
             if self.verbose:
                 print("Cut off is not set, return the original data")
@@ -46,6 +48,8 @@ class SensorFilter(SensorProcessor):
                 cutoffs = self.low_cutoff
             else:
                 cutoffs = [self.low_cutoff, self.high_cutoff]
+            if self.verbose:
+                print("cut offs: " + str(cutoffs))
             result_data = mf.butterworth(combined_data, sr, cutoffs, self.order, self.btype)
             mask = (result_data.iloc[:,0] >= data_start_indicator) & (result_data.iloc[:,0] <= data_stop_indicator)
             result_data = result_data.loc[mask,:]

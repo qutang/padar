@@ -38,11 +38,11 @@ import os
 import pandas as pd
 import numpy as np
 import scipy.signal as signal
-import mhealth.api.numeric_feature as mnf
-import mhealth.api.numeric_transformation as mnt
-import mhealth.api.filter as mf
-import mhealth.api.windowing as mw
-import mhealth.api.utils as mu
+from ...api import numeric_feature as mnf
+from ...api import numeric_transformation as mnt
+from ...api import filter as mf
+from ...api import windowing as mw
+from ...api import utils as mu
 from ..BaseProcessor import SensorProcessor
 from ..ManualOrientationNormalizer import ManualOrientationNormalizer
 from ..SensorFilter import SensorFilter
@@ -53,18 +53,19 @@ def build(**kwargs):
     return FeatureSetPreparer(**kwargs).run_on_file
 
 class FeatureSetPreparer(SensorProcessor):
-    def __init__(self, verbose=True, independent=False, setname='Feature', session_file="DerivedCrossParticipants/sessions.csv", location_mapping_file = "DerivedCrossParticipants/location_mapping.csv", orientation_fix_file='DerivedCrossParticipants/orientation_fix_map.csv', ws=12800, ss=12800, threshold=0.2, subwins=4):
-        SensorProcessor.__init__(self, verbose=verbose, independent=independent)
+    def __init__(self, verbose=True, independent=False, violate=False, setname='Feature', session_file="DerivedCrossParticipants/sessions.csv", location_mapping_file = "DerivedCrossParticipants/location_mapping.csv", orientation_fix_file='DerivedCrossParticipants/orientation_fix_map.csv', ws=12800, ss=12800, threshold=0.2, subwins=4, high_cutoff=20, skip_post=False):
+        SensorProcessor.__init__(self, verbose=verbose, independent=independent, violate=violate)
         self.name = 'AccelerometerFeatureComputer'
         self.setname = setname
         self.session_file = session_file
         self.orientation_fix_file = orientation_fix_file
         self.subwins = subwins
-        self.sensorFilter = SensorFilter(verbose=verbose, independent=independent, order=4, low_cutoff=None, high_cutoff=20)
+        self.sensorFilter = SensorFilter(verbose=verbose, independent=independent, order=4, low_cutoff=None, high_cutoff=high_cutoff)
         self.manualOrientationNormalizer = ManualOrientationNormalizer(verbose=verbose, independent=independent, orientation_fix_file=self.orientation_fix_file)
         self.timeFreqFeatureComputer = TimeFreqFeatureComputer(verbose=verbose, independent=independent, session_file=session_file, ws=ws, ss=ss, threshold=threshold)
         self.orientationFeatureComputer = OrientationFeatureComputer(verbose=verbose, independent=independent, session_file=session_file, ws=ws, ss=ss, subwins=subwins)
         self.location_mapping_file = location_mapping_file
+        self.skip_post = skip_post
     
     def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
         if combined_data.empty:
@@ -101,6 +102,8 @@ class FeatureSetPreparer(SensorProcessor):
         return feature_df
     
     def _post_process(self, result_data):
+        if self.skip_post:
+            return result_data
         output_path = mu.generate_output_filepath(self.file, self.setname, 'feature', 'PostureAndActivity')
         if not os.path.exists(os.path.dirname(output_path)):
             os.makedirs(os.path.dirname(output_path))

@@ -8,7 +8,7 @@ Usage:
 import os
 import pandas as pd
 import numpy as np
-import mhealth.api as mhapi
+from .. import api as mhapi
 from .BaseProcessor import SensorProcessor
 
 def build(**kwargs):

@@ -17,9 +17,9 @@
 
 import os
 import pandas as pd
-import mhealth.scripts as ms
-import mhealth.api as mhapi
-import mhealth.api.utils as mu
+from ... import scripts as ms
+from ... import api as mhapi
+from ...api import utils as mu
 from .TimestampSyncer import TimestampSyncer
 from ..BaseProcessor import SensorProcessor
 

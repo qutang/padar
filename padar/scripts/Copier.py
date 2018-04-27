@@ -6,7 +6,7 @@ Usage:
 """
 
 from .BaseProcessor import Processor
-import mhealth.api.utils as mu
+from ..api import utils as mu
 import os
 import shutil
 import pandas as pd

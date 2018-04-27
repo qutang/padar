@@ -12,8 +12,8 @@ Usage:
 
 import os
 import pandas as pd
-import mhealth.api as mhapi
-import mhealth.api.utils as mu
+from .. import api as mhapi
+from ..api import utils as mu
 from .BaseProcessor import SensorProcessor
 
 def build(**kwargs):

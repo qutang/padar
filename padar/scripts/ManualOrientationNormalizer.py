@@ -14,8 +14,8 @@ Usage:
 
 import os
 import pandas as pd
-import mhealth.api.utils as mu
-import mhealth.api.numeric_transformation as mnt
+from ..api import utils as mu
+from ..api import numeric_transformation as mnt
 from .BaseProcessor import SensorProcessor
 
 def build(**kwargs):

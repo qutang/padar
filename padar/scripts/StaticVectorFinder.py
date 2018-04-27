@@ -7,7 +7,7 @@ Debug:
 	mh -r . -p SPADES_1 process StaticVectorFinder --par --pattern MasterSynced/**/Actigraph*.sensor.csv > SPADES_1/Derived/static_vectors.csv
 """
 
-import mhealth.api as mhapi
+from .. import api as mhapi
 from .BaseProcessor import SensorProcessor
 
 def build(**kwargs):

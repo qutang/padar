@@ -27,9 +27,9 @@ Usage:
 import os
 import pandas as pd
 import numpy as np
-import mhealth.api.numeric_feature as mnf
-import mhealth.api.windowing as mw
-import mhealth.api.utils as mu
+from ..api import numeric_feature as mnf
+from ..api import windowing as mw
+from ..api import utils as mu
 from .BaseProcessor import SensorProcessor
 
 def build(**kwargs):

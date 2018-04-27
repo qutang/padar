@@ -179,22 +179,17 @@ class M:
 
     @property
     def participants(self):
-        """[summary]
-        
-        [description]
-        
-        Returns:
-            [type] -- [description]
-        """
-        return self._get_participants()
+        return [name for name in os.listdir(self._root) if os.path.isdir(os.path.join(self._root, name)) and not self._excluded_files(name)]
     
     def sensors(self, pid):
         pid_folder = self._root + '/' + pid
-        return self._get_sensors(pid_folder)
+        sensor_files = glob.glob(pid_folder + "//**/*.sensor.csv", recursive=True)
+        return set(map(extract_id, sensor_files))
 
     def annotators(self, pid):
         pid_folder = self._root + '/' + pid
-        return self._get_annotators(pid_folder)
+        annotation_files = glob.glob(pid_folder + "/**/*.annotation.csv", recursive=True)
+        return set(map(extract_id, annotation_files))   
 
     def folder_size(self, pid):
         total = 0
@@ -204,65 +199,6 @@ class M:
             elif entry.is_dir():
                 total += self.folder_size(entry.path)
         return total
-
-    def _get_annotators(self, folder):
-        annotation_files = glob.glob(folder + "/**/*.annotation.csv", recursive=True)
-        return set([self._extract_annotators(file) for file in annotation_files])
-        
-    def _get_sensors(self, folder):
-        sensor_files = glob.glob(folder + "//**/*.sensor.csv", recursive=True)
-        return set([self._extract_sensor_id(file) for file in sensor_files])
-
-    def _get_participants(self):
-        return [name for name in os.listdir(self._root) if os.path.isdir(os.path.join(self._root, name)) and not self._excluded_files(name)]
-
-    def merged_subject_meta(self):
-        subject_files = self._get_subject_meta_files()
-        subject_dfs = []
-        for f in subject_files:
-            if os.path.exists(f):
-                subject_df = pd.read_csv(f)
-                subject_dfs.append(subject_df)
-        if len(subject_dfs) == 0:
-            return pd.DataFrame()
-        merged_subject_meta = pd.concat(subject_dfs)
-        return merged_subject_meta
-
-    def merged_location_mapping(self, filename="Sensor_location.csv"):
-        location_files = self._get_meta_files(filename)
-        location_dfs = []
-        for f in location_files:
-            if os.path.exists(f):
-                location_df = pd.read_csv(f)
-                location_df['PID'] = os.path.basename(os.path.dirname(f))
-                location_dfs.append(location_df)
-        if len(location_dfs) == 0:
-            return pd.DataFrame()
-        merged_location_mapping = pd.concat(location_dfs)
-        return merged_location_mapping
-
-    def merged_session_meta(self, filename='Sessions.csv'):
-        session_files = self._get_meta_files(filename)
-        session_dfs = []
-        for f in session_files:
-            if os.path.exists(f):
-                session_df = pd.read_csv(f)
-                session_df['PID'] = os.path.basename(os.path.dirname(f))
-                session_dfs.append(session_df)
-        if len(session_dfs) == 0:
-            return pd.DataFrame()
-        merged_session_meta = pd.concat(session_dfs)
-        return merged_session_meta
-        
-    def _get_subject_meta_files(self):
-        participants = self._get_participants()
-        subject_metas = list(map(lambda p: self._root + os.path.sep + p + os.path.sep + 'Subject.csv', participants))
-        return subject_metas
-
-    def _get_meta_files(self, filename):
-        participants = self._get_participants()
-        metas = list(map(lambda p: self._root + os.path.sep + p + os.path.sep + filename, participants))
-        return metas
 
     def _excluded_files(self, name):
         exclude = False

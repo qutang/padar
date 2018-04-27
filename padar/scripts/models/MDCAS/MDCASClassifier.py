@@ -1,5 +1,5 @@
 from ..BaseModel import BaseModel
-from mhealth.api import utils as mu
+from ....api import utils as mu
 import numpy as np
 from sklearn import preprocessing
 import sklearn.svm as svm
@@ -46,11 +46,18 @@ class MDCASClassifier(BaseModel):
 
         return shuffled_train_set, shuffled_class_set
 
-    def _preprocess_test(self, test_df):
-        df = test_df.copy(deep=True).drop(labels=['pid', 'sid', 'location'], axis=1)
+    def _preprocess_test(self, test_df, **kwargs):
+        if kwargs['no_groups']:
+            df = test_df.copy(deep=True)
+        else:
+            df = test_df.copy(deep=True).drop(labels=['pid', 'sid', 'location'], axis=1)
         df = df.dropna()
         test_df = test_df.iloc[df.index,:]
-        test_set = test_df.drop(labels = test_df.columns[0:2].tolist() + ['pid', 'sid', 'location'], axis=1).values
+        if kwargs['no_groups']:
+            labels = test_df.columns[0:2].tolist()
+        else:
+            labels = test_df.columns[0:2].tolist() + ['pid', 'sid', 'location']
+        test_set = test_df.drop(labels = labels, axis=1).values
         # preprocess test set
         # 1. standardize
         test_set = self._scaler.transform(test_set)
@@ -128,21 +135,25 @@ class MDCASClassifier(BaseModel):
         return self
         
     def _test(self, test_df, **kwargs):
-        nonnull_indices, test_set = self._preprocess_test(test_df)
+        nonnull_indices, test_set = self._preprocess_test(test_df, no_groups=kwargs['no_groups'])
         
         labels = self._trained_model.classes_
         
-        if kwargs['prob'] in ['True', '1']:
+        if kwargs['prob'] in ['True', '1', 1, True]:
             pred_prob_set = self._trained_model.predict_proba(test_set)
             pred_max_prob_set = np.max(pred_prob_set, axis=1)
             pred_set_label_indices = np.argmax(pred_prob_set, axis=1)
             pred_set = labels[pred_set_label_indices]
         else:
             pred_set = self._trained_model.predict(test_set)
-        pred_df = test_df[test_df.columns[0:2].tolist() + ['pid', 'sid', 'location']]
+        if kwargs['no_groups']:
+            cols = test_df.columns[0:2].tolist()
+        else:
+            cols = test_df.columns[0:2].tolist() + ['pid', 'sid', 'location']
+        pred_df = test_df[cols]
         pred_df = pred_df.iloc[nonnull_indices,:]
         pred_df['MDCAS_PREDICTION'] = pred_set
-        if kwargs['prob'] in ['True', '1']:
+        if kwargs['prob'] in ['True', '1', 1, True]:
             pred_df['MDCAS_PREDICTION_PROB'] = pred_max_prob_set
         self._pred_df = pred_df
         return self

@@ -4,7 +4,7 @@ Usage:
     mh -r . process StaticFinder --par --pattern SPADES_*/MasterSynced/**/Actigraph*.sensor.csv > DerivedCrossParticipants/static_chunks.csv
 """
 
-import mhealth.api as mhapi
+from .. import api as mhapi
 from .BaseProcessor import SensorProcessor
 
 def build(**kwargs):

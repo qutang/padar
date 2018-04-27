@@ -6,7 +6,7 @@ Base class for a runnable script
 
 import pandas as pd
 import numpy as np
-import mhealth.api as mhapi
+from .. import api as mhapi
 import os
 
 class Processor:
