@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='padar',
-    version='1.0.5',
+    version='1.0.6',
     description='Processing Accelerometer Data and Do Activity Recognition',
     long_description_content_type='text/markdown',
     url='https://github.com/qutang/padar',
@@ -44,7 +44,8 @@ setup(
         'numpy',
         'scipy',
         'pathos',
-        'transforms3d'
+        'transforms3d',
+        'scikit-learn'
     ],
     python_requires='>=3',
     entry_points={
@@ -52,6 +53,7 @@ setup(
             'pad=padar.pad:main',
             'dar=padar.dar:main',
             'mdcas=padar.mdcas:main',
+            'padar=padar.helper:main'
         ]
     },  
 )

@@ -15,9 +15,8 @@ def build(**kwargs):
 	return SensorConcatenator(**kwargs).run_on_file
 
 class SensorConcatenator(SensorProcessor):
-	def __init__(self, verbose=True, independent=True, setname='Concatenated'):
-		SensorProcessor.__init__(self, verbose=verbose, independent=independent)
-		self.setname = setname
+	def __init__(self, verbose=True, independent=True, violate=False):
+		SensorProcessor.__init__(self, verbose=verbose, independent=independent, violate=violate)
 		self.name = 'SensorConcatenator'
 
 	def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):

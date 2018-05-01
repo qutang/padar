@@ -75,7 +75,7 @@ def process(ctx, script, pattern, par, violate, verbose):
         sys.path.insert(0, os.path.dirname(script_path))
         script_module = importlib.import_module(os.path.splitext(os.path.basename(script))[0])
     else:
-        script_module = importlib.import_module('mhealth.scripts.' + script)
+        script_module = importlib.import_module('padar.scripts.' + script)
     # func = script_module.main
     func = script_module.build
     if pattern is None:
@@ -100,8 +100,7 @@ def process(ctx, script, pattern, par, violate, verbose):
 @click.command()
 @click.pass_context
 @click.argument('content')
-@click.option('--filter', '-f', help='filter the list based on custom regular expression on the filepath')
-def ls(ctx, content, filter):
+def ls(ctx, content):
     """[summary]
     
     [description]

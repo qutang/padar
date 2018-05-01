@@ -235,4 +235,3 @@ def get_location_from_sid(pid, sid, location_mapping_file):
 		if selected_mapping.shape[0] == 0:
 			return "unknown"
 		return selected_mapping.values[0]
-		

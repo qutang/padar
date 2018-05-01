@@ -149,7 +149,6 @@ class M:
         return result
 
     def _get_prev_files(self, entry_files, pids, sids):
-        print(entry_files)
         entry_files = np.array(entry_files)
         prev_files = np.copy(entry_files)
         prev_files = np.roll(prev_files, 1)

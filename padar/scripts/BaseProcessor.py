@@ -78,25 +78,26 @@ class SensorProcessor(Processor):
 	
 	def _load_file(self, file, prev_file=None, next_file=None):
 		file = os.path.normpath(os.path.abspath(file))
-		df = pd.read_csv(file, parse_dates=[0], infer_datetime_format=True)
+		df = mhapi.helpers.importer.import_sensor_file_mhealth(file)
 		if self.verbose:
 			print("file: " + file)
 			print("previous file: " + str(prev_file))
 			print("next file: " + str(next_file))
 		if prev_file is not None and prev_file != "None":
 			prev_file = os.path.normpath(os.path.abspath(prev_file))
-			prev_df = pd.read_csv(prev_file, parse_dates=[0], infer_datetime_format=True)
+			prev_df = mhapi.helpers.importer.import_sensor_file_mhealth(prev_file)
 		else:
 			prev_df = pd.DataFrame()
 		if next_file is not None and next_file != "None":
 			next_file = os.path.normpath(os.path.abspath(next_file))
-			next_df = pd.read_csv(next_file, parse_dates=[0], infer_datetime_format=True)
+			next_df = mhapi.helpers.importer.import_sensor_file_mhealth(next_file)
 		else:
 			next_df = pd.DataFrame()
+		if self.verbose:
+			print(df.dtypes)
 		return df, prev_df, next_df
 	
 	def _merge_data(self, data, prev_data=None, next_data=None):
-
 		if data.empty:
 			return pd.DataFrame(), None, None
 
