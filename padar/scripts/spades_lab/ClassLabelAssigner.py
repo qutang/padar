@@ -41,8 +41,8 @@ def build(**kwargs):
 	return ClassLabelAssigner(**kwargs).run_on_file
 
 class ClassLabelAssigner(AnnotationProcessor):
-	def __init__(self, verbose=True, independent=False, ws=12800, ss=12800, session_file="DerivedCrossParticipants/sessions.csv", setname='Classlabel'):
-		AnnotationProcessor.__init__(self, verbose=verbose, independent=independent)
+	def __init__(self, verbose=True, violate=False, independent=False, ws=12800, ss=12800, session_file="DerivedCrossParticipants/sessions.csv", setname='Classlabel'):
+		AnnotationProcessor.__init__(self, verbose=verbose, violate=False, independent=independent)
 		self.name = 'ClassLabelAssigner'
 		self.setname = setname
 		self.session_file = session_file
@@ -399,4 +399,98 @@ def _to_hand_gesture(annotations, ws):
 	label = label.lower().strip()
 	if(np.any(time_diffs < ws / 1000)):
 		return "transition"
-	
+	else:
+		if label == 'jumping jacks':
+			return "jumping jacks"
+		elif "sitting" in label and 'writing' in label:
+			return 'writing (dom)'
+		elif 'stand' in label and 'writ' in label:
+			return 'writing (dom)'
+		elif 'sit' in label and 'story' in label:
+			return "talking"
+		elif "reclin" in label and 'story' in label:
+			return 'talking'
+		elif ('reclin' in label or 'sit' in label) and ('text' in label):
+			return 'using phone'
+		elif "stand" in label and "story" in label and 'wait' not in label:
+			return 'talking'
+		elif 'sit' in label and 'web' in label:
+			return 'keyboard typing'
+		elif "stand" in label and "web" in label:
+			return "keyboard typing"
+		elif 'stair' in label and 'down' in label:
+			return "free"
+		elif 'stair' in label and 'up' in label and 'phone' in label:
+			return 'phone talking'
+		elif 'stair' in label and 'up' in label:
+			return 'free'
+		elif 'mbta' in label and 'stand' in label:
+			return 'still'
+		elif 'mbta' in label and 'sit' in label:
+			return 'free'
+		elif 'bik' in label and 'outdoor' in label:
+			return "biking"
+		elif 'bik' in label and 'stationary' in label:
+			return "biking"
+		elif 'treadmill' in label and '1' in label and 'arms' in label:
+			return "arms on desk"
+		elif 'treadmill' in label and '2' in label and 'arms' in label:
+			return "arms on desk"
+		elif 'treadmill' in label and '3.5' in label and 'text' in label and 'arms' not in label:
+			return "using phone"
+		elif 'treadmill' in label and 'phone' in label and 'arms' not in label:
+			return "phone talking"
+		elif 'treadmill' in label and 'bag' in label and 'arms' not in label:
+			return "carrying suitcase"
+		elif 'treadmill' in label and 'story' in label and 'arms' not in label:
+			return "talking"
+		elif 'treadmill' in label and 'drink' in label and 'arms' not in label:
+			return 'carrying a drink'
+		elif ('treadmill' in label or 'walk' in label) and ('3.5' in label or '3' in label) and 'arms' not in label:
+			return 'free'
+		elif 'treadmill' in label and '5.5' in label:
+			return 'free'
+		elif 'laundry' in label:
+			return 'folding towels'
+		elif 'sweep' in label:
+			return 'sweeping'
+		elif 'frisbee' in label:
+			return 'frisbee'
+		elif 'shelf' in label and 'load' in label:
+			return 'shelf reloading or unloading'
+		elif 'lying' in label:
+			return "still"
+		elif 'elevator' in label and 'up' in label:
+			return 'free'
+		elif 'elevator' in label and 'down' in label:
+			return 'free'
+		elif 'escalator' in label and 'up' in label:
+			return "free"
+		elif 'escalator' in label and 'down' in label:
+			return "free"
+		elif "walk" in label and 'bag' in label and 'story' in label:
+			return "talking"
+		elif "walk" in label and 'bag' in label:
+			return "free"
+		elif "walk" in label and 'story' in label:
+			return "talking"
+		elif "walk" in label and 'text' in label:
+			return "using phone"
+		elif label == 'walking':
+			return 'free'
+		elif 'outdoor' in label and 'stand' in label:
+			return "free"
+		elif 'vend' in label:
+			return "using vending machine"
+		elif 'light' in label and 'stand' in label:
+			return "free"
+		elif label == 'standing':
+			return 'free'
+		elif 'sit' in label and 'wait' in label:
+			return 'free'
+		elif label == 'sitting' or ('sit' in label and 'still' in label):
+			return "still"
+		elif label == "still" or 'standing' == label:
+			return "still"
+		else:
+			return 'unknown'

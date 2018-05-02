@@ -115,8 +115,8 @@ class SensorProcessor(Processor):
 		return combined_data, data_start_indicator, data_stop_indicator
 
 class AnnotationProcessor(Processor):
-	def __init__(self, verbose=True, independent=True):
-		Processor.__init__(self, verbose, independent)
+	def __init__(self, verbose=True, violate=False, independent=True):
+		Processor.__init__(self, verbose, violate, independent)
 		self.name = 'AnnotationProcessor'
 	
 	def _load_file(self, file, prev_file=None, next_file=None):
