@@ -146,6 +146,9 @@ class M:
                     col_order = entry_result.columns
         result = pd.concat(result, ignore_index=True)
         result = result[col_order]
+        # sort timestamp
+        if isinstance(result.iloc[0,0], pd.Timestamp):
+            result = result.sort_values(by=result.columns[0])
         return result
 
     def _get_prev_files(self, entry_files, pids, sids):

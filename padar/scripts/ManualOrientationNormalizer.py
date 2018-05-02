@@ -29,14 +29,14 @@ class ManualOrientationNormalizer(SensorProcessor):
         self.setname = setname
 
     def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
-        pid = self.meta['pid']
-        sid = self.meta['sid']
         orientation_fix_file = self.orientation_fix_file
         if orientation_fix_file is None or orientation_fix_file == "None" or pid is None or sid is None:
             x_axis_change = "X"
             y_axis_change = "Y"
             z_axis_change = "Z"
         else:
+            pid = self.meta['pid']
+            sid = self.meta['sid']
             orientation_fix_map = pd.read_csv(orientation_fix_file)
             selection_mask = (orientation_fix_map.iloc[:,0] == pid) & (orientation_fix_map.iloc[:,1] == sid)
             selected_fix_map = orientation_fix_map.loc[selection_mask, :]

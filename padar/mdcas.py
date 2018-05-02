@@ -32,31 +32,7 @@ def compute_features(ctx, input_file, output_file):
     kwargs = {ctx.args[i][2:]: ctx.args[i+1].strip('"') for i in range(0, len(ctx.args), 2)}
     output_file = os.path.abspath(output_file)
     click.echo("Init feature set computation")
-    executor = FeatureSetPreparer.build(verbose=True, independent=True, session_file=None, location_mapping_file = None, orientation_fix_file=None, ws=12800, ss=12800, threshold=0.2, subwins=4, skip_post=True, **kwargs)
-    click.echo("Compute feautures")
-    result = executor(input_file)
-    if not os.path.exists(os.path.dirname(output_file)):
-        click.echo("Create output folder if not exists")
-        os.makedirs(os.path.dirname(output_file))
-    click.echo("Save feature set to: " + output_file)
-    result.to_csv(output_file, index=False, float_format='%.6f')
-    click.echo("Saved")
-
-@click.command(context_settings=dict(
-    ignore_unknown_options=True,
-    allow_extra_args=True
-))
-@click.argument('input_file')
-@click.option('--output_file', '-o', help='output file path')
-@click.pass_context
-def compute_features(ctx, input_file, output_file):
-    """
-        Function to compute features for MDCAS classifier
-    """
-    kwargs = {ctx.args[i][2:]: ctx.args[i+1].strip('"') for i in range(0, len(ctx.args), 2)}
-    output_file = os.path.abspath(output_file)
-    click.echo("Init feature set computation")
-    executor = FeatureSetPreparer.build(verbose=True, independent=True, session_file=None, location_mapping_file = None, orientation_fix_file=None, ws=12800, ss=12800, threshold=0.2, subwins=4, skip_post=True, **kwargs)
+    executor = FeatureSetPreparer.build(verbose=True, violate=True, independent=True, session_file=None, location_mapping_file = None, orientation_fix_file=None, ws=12800, ss=12800, threshold=0.2, subwins=4, skip_post=True, **kwargs)
     click.echo("Compute feautures")
     result = executor(input_file)
     if not os.path.exists(os.path.dirname(output_file)):

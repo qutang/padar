@@ -8,7 +8,7 @@ def import_sensor_file_mhealth(filepath, verbose=False):
 		skip_blank_lines=True, 
 		low_memory=False,
 		comment='#')
-	df.iloc[:,0] = pd.to_datetime(df.iloc[:,0], infer_datetime_format=True, errors='coerce').values.astype('datetime64[ms]')
+	df.iloc[:,0] = pd.to_datetime(df.iloc[:,0], infer_datetime_format=True, errors='coerce', format='%Y-%m-%d %H:%M:%S.%f', exact=True).values.astype('datetime64[ms]')
 	df.iloc[:,1:] = df.iloc[:,1:].apply(pd.to_numeric, errors='coerce')
 	if verbose:
 		print('na rows:' + str(df.shape[0] - df.dropna().shape[0]))

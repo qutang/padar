@@ -73,7 +73,7 @@ class Processor:
 
 class SensorProcessor(Processor):
 	def __init__(self, verbose=True, violate=False, independent=True):
-		Processor.__init__(self, verbose, violate, independent)
+		Processor.__init__(self, verbose=verbose, violate=violate, independent=independent)
 		self.name = 'SensorProcessor'
 	
 	def _load_file(self, file, prev_file=None, next_file=None):
@@ -110,7 +110,8 @@ class SensorProcessor(Processor):
 		combined_data = pd.concat([prev_data, data, next_data], axis=0, ignore_index=True)
 		combined_data = combined_data[columns]
 		data_start_indicator = data.iloc[0, 0].to_datetime64().astype('datetime64[h]')
-		data_stop_indicator = data.iloc[0, 0].to_datetime64().astype('datetime64[h]') + np.timedelta64(1, 'h')
+		# file could be longer than an hour
+		data_stop_indicator = data.iloc[-1, 0].to_datetime64().astype('datetime64[h]') + np.timedelta64(1, 'h')
 		return combined_data, data_start_indicator, data_stop_indicator
 
 class AnnotationProcessor(Processor):
