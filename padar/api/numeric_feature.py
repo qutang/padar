@@ -152,3 +152,5 @@ def _peaks(y, x, sort='descend'):
     x_sorted_peaks = x_peaks[sorted_locs]
     return (x_sorted_peaks, y_sorted_peaks)
 
+def enmo(X):
+    return np.mean(np.clip(vector_magnitude(X) - 1, a_min=0,a_max=None))
