@@ -14,4 +14,15 @@ def import_sensor_file_mhealth(filepath, verbose=False):
 		print('na rows:' + str(df.shape[0] - df.dropna().shape[0]))
 	df = df.dropna()
 	return df
+
+def import_annotation_file_mhealth(filepath, verbose=False):
+	df = pd.read_csv(filepath,
+		error_bad_lines=False, 
+		warn_bad_lines=False, 
+		skip_blank_lines=True,
+		low_memory=False,
+		parse_dates=[0,1,2],
+		infer_datetime_format=True,
+		comment='#')
+	return df
 	

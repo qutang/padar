@@ -125,7 +125,7 @@ class M:
             #     return func(a_zip[0], verbose=verbose, prev_file=a_zip[1], next_file=a_zip[2], **kwargs)
             
             def zipped_func(a_zip):
-                return func(verbose=verbose, violate=True, **kwargs)(a_zip[0], prev_file=a_zip[1], next_file=a_zip[2])
+                return func(verbose=verbose, violate=violate, **kwargs)(a_zip[0], prev_file=a_zip[1], next_file=a_zip[2])
 
             # func_partial = partial(zipped_func, verbose=verbose, **kwargs)
             # result = self._pool.map(func_partial, zip(entry_files, prev_files, next_files))

@@ -4,7 +4,7 @@ import numpy as np
 import re
 
 def extract_file_type(abspath):
-    return os.path.basename(abspath).split('.')[3].lower().strip()
+    return os.path.basename(abspath).split('.')[-2].lower().strip()
 
 def extract_date(abspath):
         return re.search('[0-9]{4}-[0-9]{2}-[0-9]{2}', os.path.basename(abspath).split('.')[2]).group(0)
