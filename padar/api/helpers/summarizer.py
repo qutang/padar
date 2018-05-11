@@ -29,9 +29,9 @@ def summarize_sensor(df, method='enmo', window=5):
         by_groups.append('location')
     result = df.groupby(by=[pd.Grouper(key=df.columns[0], freq=str(window) + 's')] + by_groups).apply(lambda row: enmo(row.iloc[:,1:4].values))
     result = result.reset_index()
-    print(result.head())
     if len(by_groups) > 0:
         result = result.sort_values(by=by_groups)
     result = result.rename(columns={0: method})
+    result = result[[result.columns[0], method] + by_groups]
     return result
     

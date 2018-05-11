@@ -6,7 +6,6 @@ import warnings
 import numpy
 import importlib
 import sys
-from .apps import data_quality_check as dqc_app
 
 @click.group()
 @click.option('--pid', '-p', help='If provided, things will be tuned for specific participant')
