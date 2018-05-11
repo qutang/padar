@@ -154,3 +154,6 @@ def _peaks(y, x, sort='descend'):
 
 def enmo(X):
     return np.mean(np.clip(vector_magnitude(X) - 1, a_min=0,a_max=None))
+
+def sr(X):
+	return X.shape[0] 

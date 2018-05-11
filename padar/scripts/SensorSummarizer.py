@@ -22,8 +22,7 @@ class SensorSummarizer(SensorProcessor):
         self.location_mapping_file = location_mapping_file
 
     def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
-        if self.method == 'enmo':
-            result_data = summarizer.summarize_sensor(combined_data, method=self.method, window=self.window_size)
+        result_data = summarizer.summarize_sensor(combined_data, method=self.method, window=self.window_size)
         return result_data
 
     def _post_process(self, result_data):

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from ..numeric_feature import enmo
+from ..numeric_feature import enmo, sr
 def summarize_annotation(df):
     by_groups = []
     sort_by = []
@@ -27,7 +27,10 @@ def summarize_sensor(df, method='enmo', window=5):
         by_groups.append('sid')
     if 'location' in df.columns:
         by_groups.append('location')
-    result = df.groupby(by=[pd.Grouper(key=df.columns[0], freq=str(window) + 's')] + by_groups).apply(lambda row: enmo(row.iloc[:,1:4].values))
+    if method == 'enmo':
+        result = df.groupby(by=[pd.Grouper(key=df.columns[0], freq=str(window) + 's')] + by_groups).apply(lambda row: enmo(row.iloc[:,1:4].values))
+    elif method == 'sr':
+        result = df.groupby(by=[pd.Grouper(key=df.columns[0], freq=str(window) + 's')] + by_groups).apply(lambda row: sr(row.values))
     result = result.reset_index()
     if len(by_groups) > 0:
         result = result.sort_values(by=by_groups)

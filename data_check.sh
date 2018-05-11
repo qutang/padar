@@ -53,6 +53,10 @@ echo What is current study name [EX. \'CamSPADESInLab\']?
 read -p 'Study name: ' study_name
 echo Study name is $study_name
 
+echo Create \'Derived\\Summarization\' folder for $pid  
+mkdir -p "$root_folder/$pid/Derived/Merged"
+mkdir -p "$root_folder/$pid/Derived/Summarization"
+
 # summarize annotation
 echo_in_green "Generate annotation summary"
 read -p "Skip (y/n)?" skip_annotation_summary
@@ -60,8 +64,6 @@ if [ "$skip_annotation_summary" = "y" ]
 then
     echo Skip annotation summary
 else
-    echo Create \'Derived\\Summarization\' folder for $pid  
-    mkdir -p "$root_folder/$pid/Derived/Merged"
     echo Concatenate annotations
     annotation_file=$study_name.annotation.csv
     pad -r $root_folder -p $pid process --pattern MasterSynced/**/*.annotation.csv --par AnnotationConcatenator > $root_folder/$pid/Derived/Merged/$annotation_file
@@ -88,14 +90,40 @@ fi
 
 # summarize sensor (enmo)
 echo_in_green "Generate sensor ENMO summary"
-read -p 'Keyword in sensor file: ' sensor_pattern
-echo Sensor file keywrod: $sensor_pattern
-echo Summarize sensors
-read -p 'Input window size (seconds): ' window_size
-sensor_file=$sensor_pattern-enmo.feature.csv
+read -p "Skip (y/n)?" skip_enmo
+if [ "$skip_enmo" = "y" ]
+then
+    echo Skip enmo
+else
+    read -p 'Keyword in sensor file: ' sensor_pattern
+    echo Sensor file keywrod: $sensor_pattern
+    echo Summarize sensors
+    read -p 'Input window size (seconds): ' window_size
+    sensor_file=$sensor_pattern-enmo.feature.csv
 
-echo Compute ENMO summary
-pad -r $root_folder -p $pid process --pattern MasterSynced/**/*$sensor_pattern*.sensor.csv --par SensorSummarizer --location_mapping_file $root_folder/$pid/location_mapping.csv --window_size $window_size > $root_folder/$pid/Derived/Summarization/$sensor_file
+    echo Compute ENMO summary
+    pad -r $root_folder -p $pid process --pattern MasterSynced/**/*$sensor_pattern*.sensor.csv --par SensorSummarizer --location_mapping_file $root_folder/$pid/location_mapping.csv --window_size $window_size > $root_folder/$pid/Derived/Summarization/$sensor_file
 
-echo Generate graph
-padar visualize -o $root_folder/$pid/Derived/Summarization/ $root_folder/$pid/Derived/Summarization/$sensor_file
+    echo Generate graph
+    padar visualize -o $root_folder/$pid/Derived/Summarization/ $root_folder/$pid/Derived/Summarization/$sensor_file
+fi
+
+# summarize sensor (sampling rate)
+echo_in_green "Generate sensor sampling rate summary"
+
+read -p "Skip (y/n)?" skip_sampling_rate
+if [ "$skip_sampling_rate" = "y" ]
+then
+    echo Skip summarize sampling rate
+else
+    read -p 'Keyword in sensor file: ' sensor_pattern
+    echo Sensor file keywrod: $sensor_pattern
+    echo Summarize sensors
+    read -p 'Input window size (seconds): ' window_size
+    sensor_file=$sensor_pattern-sr.feature.csv
+
+    echo Compute sampling rate summary
+    pad -r $root_folder -p $pid process --pattern MasterSynced/**/*$sensor_pattern*.sensor.csv --par SensorSummarizer --location_mapping_file $root_folder/$pid/location_mapping.csv --method sr --window_size $window_size > $root_folder/$pid/Derived/Summarization/$sensor_file
+    echo Generate graph
+    padar visualize -o $root_folder/$pid/Derived/Summarization/ $root_folder/$pid/Derived/Summarization/$sensor_file
+fi
