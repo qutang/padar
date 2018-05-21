@@ -52,12 +52,12 @@ def train(ctx, script, feature_set, class_set, output_format, output, verbose):
     allow_extra_args=True
 ))
 @click.argument('script')
-@click.option('--model', help='model bundle file')
-@click.option('--input_format', help='model bundle file format')
-@click.option('--test_set', help='Test feature set file, in long tabular format')
-@click.option('--gt_set', help='Ground truth class set file')
+@click.option('--model', '-m', help='model bundle file')
+@click.option('--input_format', '-f', help='model bundle file format')
+@click.option('--test_set', '-t', help='Test feature set file, in long tabular format')
+@click.option('--gt_set', '-g', help='Ground truth class set file')
 @click.option('--output', '-o', help='output file path in csv')
-@click.option('--verbose', help='turn on verbose or not', is_flag=True)
+@click.option('--verbose', '-v', help='turn on verbose or not', is_flag=True)
 @click.pass_context
 def test(ctx, script, model, input_format, test_set, gt_set, output, verbose):
     """
@@ -73,10 +73,10 @@ def test(ctx, script, model, input_format, test_set, gt_set, output, verbose):
         sys.path.insert(0, os.path.dirname(script_path))
         script_module = importlib.import_module(os.path.splitext(os.path.basename(script))[0])
     else:
-        script_module = importlib.import_module('mhealth.scripts.models.' + script)
+        script_module = importlib.import_module('padar.scripts.models.' + script)
     
     model_class = script_module.init(verbose, None, None)
-    pred_df = model_class.test(model, test_set, gt_set, input_format, verbose, **kwargs)
+    model_class.test(model, test_set, gt_set, input_format, verbose, **kwargs)
     model_class.export_test(output)
 
 
