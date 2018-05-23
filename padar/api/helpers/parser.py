@@ -15,6 +15,7 @@ def parse_location_mapping(folder, location_pattern, pid_pattern):
 	
 def _parse_location_mapping(filepath, location_pattern, pid_pattern):
 	filepath = os.path.abspath(filepath)
+	print("parse location from " + filepath)
 	matches = re.search(pid_pattern, filepath)
 	pid = matches.group(1)
 	matches = re.search(location_pattern, os.path.basename(filepath))

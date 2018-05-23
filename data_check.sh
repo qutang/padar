@@ -72,21 +72,22 @@ else
 fi
 
 # parse sensor locations
-echo_in_green "Parse sensor locations"
+# echo_in_green "Parse sensor locations"
 
-read -p "Skip (y/n)?" skip_sensor_location_parsing
-if [ "$skip_sensor_location_parsing" = "y" ]
-then
-    echo Skip sensor location parsing
-else
-    read -p 'Regexp pattern to extract location in filename: ' location_pattern
-    export location_pattern
-    echo Location pattern: $location_pattern
-    echo Select folder that contains the original Actigraph csv files
-    folder=$(DISPLAY=:0 yad --file-selection --directory --filename=$root_folder/$pid)
-    padar parse_location -o $root_folder/$pid/ -l $location_pattern -p "($pid)" $folder
-    cat $root_folder/$pid/location_mapping.csv | column -t -s,
-fi
+# read -p "Skip (y/n)?" skip_sensor_location_parsing
+# if [ "$skip_sensor_location_parsing" = "y" ]
+# then
+#     echo Skip sensor location parsing
+# else
+#     # read -p 'Regexp pattern to extract location in filename: ' location_pattern
+#     location_pattern="CamSpades_03_(([A-Z]{1}[a-z0-9]+)+) \(.*\)"
+#     export location_pattern
+#     echo Location pattern: $location_pattern
+#     echo Select folder that contains the original Actigraph csv files
+#     folder=$(DISPLAY=:0 yad --file-selection --directory --filename=$root_folder/$pid)
+#     padar parse_location -o $root_folder/$pid/ -l $location_pattern -p "($pid)" $folder
+#     cat $root_folder/$pid/location_mapping.csv | column -t -s,
+# fi
 
 # summarize sensor (enmo)
 echo_in_green "Generate sensor ENMO summary"
