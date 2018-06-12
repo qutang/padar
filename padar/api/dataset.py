@@ -7,6 +7,7 @@ from pathos.multiprocessing import ProcessingPool as Pool
 from multiprocessing import cpu_count
 from functools import partial
 from .utils import *
+from ..utility import logger
 
 class M:
     """[summary]
@@ -84,11 +85,7 @@ class M:
     def process(self, rel_pattern = "", func=None, use_parallel=False, verbose=False, **kwargs):
         if use_parallel:
             self._pool = Pool(self._num_of_cpu - 1)
-        if rel_pattern == "":
-            rel_path = os.path.join(self._root, "*", "MasterSynced")
-        else:
-            rel_path = os.path.join(self._root, rel_pattern)
-        result = self._process(rel_path, func, use_parallel=use_parallel, verbose=verbose, **kwargs)
+        result = self._process(rel_pattern, func, use_parallel=use_parallel, verbose=verbose, **kwargs)
         if use_parallel:
             self._pool.close()
         return result
@@ -147,9 +144,11 @@ class M:
         result = pd.concat(result, ignore_index=True)
         result = result[col_order]
         # sort timestamp
-        if isinstance(result.iloc[0,0], pd.Timestamp):
+        if result.empty:
+            return result
+        elif isinstance(result.iloc[0,0], pd.Timestamp):
             result = result.sort_values(by=result.columns[0])
-        return result
+            return result
 
     def _get_prev_files(self, entry_files, pids, sids):
         entry_files = np.array(entry_files)

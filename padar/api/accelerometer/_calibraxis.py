@@ -21,6 +21,8 @@ import copy
 import six
 import numpy as np
 
+from ...utility import logger
+
 # Version information.
 __version__ = '0.2.0'
 version = __version__  # backwards compatibility name
@@ -292,7 +294,7 @@ class Calibraxis(object):
             x -= gain * (D.dot(H)).T
             R_post = np.linalg.norm(R)
             if self._verbose:
-                print("{0}: {1} ({2})".format(
+                logger.debug("{0}: {1} ({2})".format(
                     n, R_post, ", ".join(["{0:0.9g}".format(v) for v in x])))
 
             # This is to make sure that the error is

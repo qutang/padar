@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 from ._calibraxis import Calibraxis
 from ..utils import clip_dataframe
+from ...utility import logger
 
 class Calibrator():
-	def __init__(self, accel_df, angle_diff=30, max_points=12, g_threshold=0.01, chunk_size=1000):
+	def __init__(self, accel_df, angle_diff=30, max_points=12, g_threshold=0.01, chunk_size=1000, verbose=True):
 		self._data = accel_df
 		self._angle_diff = angle_diff
 		self._max_points = max_points
@@ -16,6 +17,7 @@ class Calibrator():
 		self._chunk_size = chunk_size
 		self._calibration_chunks = []
 		self._calibrated_data = pd.DataFrame()
+		self._verbose=verbose
 
 	@property
 	def calibrated(self):
@@ -51,8 +53,8 @@ class Calibrator():
 				chunk_mean = np.mean(chunk_values, axis=0)
 				chunk_orientation = np.rad2deg(accelerometer_orientation(chunk_mean))
 				if self._is_different_orientation(chunk_orientation, calibration_chunks_orientations):
-					chunk.insert(3, 'WINDOW_ID', i)
-					chunk.insert(4, 'COUNT', count)
+					chunk.insert(4, 'WINDOW_ID', i)
+					chunk.insert(5, 'COUNT', count)
 					calibration_chunks.append(chunk)
 					calibration_chunks_orientations.append(chunk_orientation)
 					count = count + 1
@@ -68,7 +70,7 @@ class Calibrator():
 		self._calibration_chunks = calibration_chunks
 		return self
 
-	def run(self, verbose=False):
+	def run(self):
 		df = self._data
 		if len(self._calibration_chunks) == 0:
 			calibrated_df = df.copy(deep=True)
@@ -81,13 +83,13 @@ class Calibrator():
 		else:
 			calibration_points = self._calibration_chunks.groupby(['WINDOW_ID', 'COUNT']).mean()
 		# run calibration algorithm
-		calibrator = Calibraxis(verbose=False)
+		calibrator = Calibraxis(verbose=self._verbose)
 		calibrator.add_points(calibration_points.values)
 		calibrator.calibrate_accelerometer()
 
 		if(calibrator.scale_factor_matrix is None):
-			print("Calibration fails, provided calibration points cannot converge")
-			print("Use original data")
+			logger.warn("Calibration fails, provided calibration points cannot converge")
+			logger.warn("Skip calibration and use original data")
 			self._calibrated_data = df
 			return self
 

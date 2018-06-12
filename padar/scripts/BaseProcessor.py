@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 from .. import api as mhapi
 import os
+from ..utility import logger
 
 class Processor:
 	def __init__(self, verbose=True, violate=False, independent=True):
@@ -80,9 +81,9 @@ class SensorProcessor(Processor):
 		file = os.path.normpath(os.path.abspath(file))
 		df = mhapi.helpers.importer.import_sensor_file_mhealth(file)
 		if self.verbose:
-			print("file: " + file)
-			print("previous file: " + str(prev_file))
-			print("next file: " + str(next_file))
+			logger.info("Current file: " + file)
+			logger.info("Previous file: " + str(prev_file))
+			logger.info("Next file: " + str(next_file))
 		if prev_file is not None and prev_file != "None":
 			prev_file = os.path.normpath(os.path.abspath(prev_file))
 			prev_df = mhapi.helpers.importer.import_sensor_file_mhealth(prev_file)
@@ -93,8 +94,6 @@ class SensorProcessor(Processor):
 			next_df = mhapi.helpers.importer.import_sensor_file_mhealth(next_file)
 		else:
 			next_df = pd.DataFrame()
-		if self.verbose:
-			print(df.dtypes)
 		return df, prev_df, next_df
 	
 	def _merge_data(self, data, prev_data=None, next_data=None):
