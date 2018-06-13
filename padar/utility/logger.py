@@ -14,13 +14,20 @@ def caller():
        An empty string is returned if skipped levels exceed stack height
     """
 
-    def check_caller(caller_name):
-        return 'padar.pad' in caller_name
+    def check_caller(caller_module):
+        if caller_module is not None:
+            return 'padar.pad' in caller_module.__name__ or 'padar.api.dataset' in caller_module.__name__
+        else:
+            return False
 
     stack = inspect.stack()
     frames = [frame[0] for frame in stack]
-    caller_modules = [inspect.getmodule(frame) for frame in frames]  
-    filtered_caller_modules_bool = [check_caller(module.__name__) for module in caller_modules]
+    caller_modules = [inspect.getmodule(frame) for frame in frames]
+    try:  
+        filtered_caller_modules_bool = [check_caller(module) for module in caller_modules]
+    except:
+        print(caller_modules)
+        exit(1)
     first_match = filtered_caller_modules_bool.index(True)
     name = []
     module = caller_modules[first_match]
@@ -28,7 +35,11 @@ def caller():
     # `modname` can be None when frame is executed directly in console
     # TODO(techtonik): consider using __main__
     if module:
-        name.append(module.__name__)
+        try:
+            name.append(module.__name__)
+        except:
+            print(caller_modules)
+            exit(1)
     # detect classname
     if 'self' in parentframe.f_locals:
         # I don't know any way to detect call from the object method
@@ -42,6 +53,7 @@ def caller():
     return ".".join(name)
 
 def log(text, level='INFO', color='green'):
+    # TODO: make this function thread-safe using filelock
     now = time.time()
     ts = time.localtime(now)
     milliseconds = '%03d' % int((now - int(now)) * 1000)
@@ -81,7 +93,7 @@ def debug(text):
     log(text, level='DEBUG', color='blue')
 
 def warn(text):
-    log(text, level='WARN', color='orange')
+    log(text, level='WARN', color='yellow')
 
 def error(text):
     log(text, level='ERROR', color='red')

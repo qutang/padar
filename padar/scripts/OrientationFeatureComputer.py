@@ -28,17 +28,17 @@ def build(**kwargs):
     return OrientationFeatureComputer(**kwargs).run_on_file
 
 class OrientationFeatureComputer(SensorProcessor):
-    def __init__(self, verbose=True, independent=False, setname='Feature', session_file='DerivedCrossParticipants/sessions.csv', ws=12800, ss=12800, subwins=4):
+    def __init__(self, verbose=True, independent=False, setname='Feature', sessions='DerivedCrossParticipants/sessions.csv', ws=12800, ss=12800, subwins=4):
         SensorProcessor.__init__(self, verbose=verbose, independent=independent)
         self.name = 'OrientationFeatureComputer'
         self.setname = setname
-        self.session_file = session_file
+        self.sessions = sessions
         self.ws = ws
         self.ss = ss
         self.subwins = 4
     
     def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
-        st, et = mu.get_st_et(combined_data, self.meta['pid'], self.session_file, st_col=0, et_col=0)
+        st, et = mu.get_st_et(combined_data, self.meta['pid'], self.sessions, st_col=0, et_col=0)
         ws = self.ws
         ss = self.ss
         subwins = self.subwins

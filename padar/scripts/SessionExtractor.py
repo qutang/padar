@@ -1,7 +1,31 @@
 """
-  script to extract session times from annotation files each hour
+  Script to extract session times from annotation or sensor files each hour. Use it before `FeatureSetPreparer`.
+
+  If your dataset has annotation files, use annotation files to extract sessions. Otherwise, use sensor files to extract sessions.
+
   Usage:
-    mh -r . process SessionExtractor --par --pattern SPADES_*/MasterSynced/**/*.annotation.csv > DerivedCrossParticipants/sessions.csv
+    pad -p <PID> -r <root> process -p <PATTERN> --par -o <OUTPUT_FILEPATH> SessionExtractor
+
+    process options:
+      --output, -o <filepath>: The output filepath (relative to participant's folder or root folder) where the script will save the extracted sessions information from one or more participants to.
+
+  Examples:
+
+    1. Extract sessions information from annotation files for participant SPADES_1 and save the sessions information to 'sessions.csv' in the 'Derived' folder of SPADES_1
+
+      pad -p SPADES_1 process SessionExtractor --par -p MasterSynced/**/*.annotation.csv -o Derived/sessions.csv
+
+    2. Extract sessions information from Actigraph sensor files for participant SPADES_1 and save the sessions information to 'sessions.csv' in the 'Derived' folder of SPADES_1
+
+      pad -p SPADES_1 process SessionExtractor --par -p MasterSynced/**/Actigraph*.sensor.csv -o Derived/sessions.csv
+
+    3. Extract sessions information from annotation files for all participants and save the sessions information to 'sessions.csv' in the 'DerivedCrossParticipants' folder of the whole dataset
+
+      pad process SessionExtractor --par -p SPADES_*/MasterSynced/**/*.annotation.csv -o DerivedCrossParticipants/sessions.csv
+
+    2. Extract sessions information from Actigraph sensor files for all participants and save the sessions information to 'sessions.csv' in the 'DerivedCrossParticipants' folder of the whole dataset
+
+      pad process SessionExtractor --par -p SPADES_*/MasterSynced/**/Actigraph*.sensor.csv -o Derived/sessions.csv
 """
 
 import os
@@ -13,8 +37,8 @@ def build(**kwargs):
   return SessionExtractor(**kwargs).run_on_file
 
 class SessionExtractor(Processor):
-  def __init__(self, verbose=True, independent=True):
-    Processor.__init__(self, verbose=verbose, independent=independent)
+  def __init__(self, verbose=True, independent=True, violate=False):
+    Processor.__init__(self, verbose=verbose, independent=independent, violate=violate)
     self.sensorProcessor = SensorProcessor(verbose=verbose, independent=independent)
     self.annotationProcessor = AnnotationProcessor(verbose=verbose, independent=independent)
     self.name = 'SessionExtractor'

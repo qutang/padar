@@ -24,7 +24,7 @@ Examples:
 
 	2. Calibrate the Actigraph raw data files for all participants in a dataset in parallel and save it to a folder named 'Calibrated' in the 'Derived' folder of each participant
 
-		pad process AccelerometerCalibrator --par -p MasterSynced/**/Actigraph*.sensor.csv -output_folder Calibrated --static_chunks DerivedCrossParticipants/static_chunks.csv
+			pad process AccelerometerCalibrator --par -p MasterSynced/**/Actigraph*.sensor.csv -output_folder Calibrated --static_chunks DerivedCrossParticipants/static_chunks.csv
 """
 
 import os

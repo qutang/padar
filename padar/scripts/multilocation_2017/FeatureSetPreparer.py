@@ -25,13 +25,46 @@ Orientation features:
         x,y,z angle range
 
 Prerequiste:
-    Run `SessionExtractor` script first
+    Better to run `SessionExtractor` script first
+
+Usage:
+	pad -p <PID> -r <root> process -p <PATTERN> --par -o <OUTPUT_FILEPATH> multilocation_2017.FeatureSetPreparer <options>
+
+    process options:
+        --output, -o <filepath>: the output filepath (relative to participant's folder or root folder) that the script will save concatenated feature set data to. If it is not provided, concatenated feature set results will not be saved.
+
+	script options:
+	
+		--sessions <path>: the filepath (relative to root folder or absolute path) that contains the sessions information (the start and end time of a data collection session for a participant) found by `SessionExtractor`. If this file is not provided, the start and end time of the dataset will be the start and end time of the current file.
+
+        --location_mapping <path>: the filepath (relative to root folder or absolute path) that contains the location mapping information (mapping from sensor id to sensor location). If this file is not provided, location information will not be appended to the output.
+
+        --orientation_fixes <path>: the filepath (relative to root folder or absolute path) that contains the ground truth of orientation fix information (swap or flip between x, y and z axes). If this file is not provided, orientation fix will be skipped.
+
+        --ws <number>: window size in milliseconds. The size of window to extract features. Default is 12800ms (12.8s)
+
+        --ss <number>: step size in milliseconds. The size of sliding step between adjacent window. Default is 12800ms (12.8s), indicating there is no overlapping between adjacent feature windows.
+
+        --threshold <number>: the threshold in g value to compute activation related features. Default is 0.2g.
+
+        --subwins <number>: the number of sub windows in a feature window, which is used to compute location features (also used in orientation feature computation). Default is 4.
+
+        --high_cutoff <number>: the lowpass butterworth filter cutoff frequency applied before computing features. Default is 20Hz. This value should be smaller than half of the sampling rate.
+		
+		--output_folder <folder name>: the folder name that the script will save feature set data to in a participant's Derived folder. User must provide this information in order to use the script.
+		
+	output:
+		The command will print the concatenated feature set file in pandas dataframe to console. The command will also save features to hourly files to <output_folder> if this parameter is provided.
 
 Examples:
-    On all participants
-        `mh -r . process multilocation_2017.FeatureSetPreparer --par --pattern SPADES_*/Derived/Preprocessed/**/Actigraph*.sensor.csv --setname Preprocessed > DerivedCrossParticipants/Feature_sets/multilocation_posture_and_activity.feature.csv`
-    On single participant
-        `mh -r . -p SPADES_1 process multilocation_2017.FeatureSetPreparer --par --pattern MasterSynced/**/Actigraph*.sensor.csv > SPADES_1/Derived/multilocation_posture_and_activity.feature.csv`
+
+	1.  Compute features for each of the Actigraph raw data files for participant SPADES_1 in parallel and save each to a folder named 'Features' in the 'Derived' folder of SPADES_1 and then save the concatenated feature set data to 'PostureAndActivity.feature.csv' in 'Derived' folder of SPADES_1
+	
+    	pad -p SPADES_1 process multilocation_2017.FeatureSetPreparer --par -p MasterSynced/**/Actigraph*.sensor.csv --output_folder Features --sessions SPADES_1/Derived/sessions.csv --location_mapping SPADES_1/Derived/location_mapping.csv -o Derived/PostureAndActivity.feature.csv
+
+	2. Compute features for each of the Actigraph raw data files for all participants in a dataset in parallel and save each to a folder named 'Features' in the 'Derived' folder of each participant and then save the concatenated feature set data to 'PostureAndActivity.feature.csv' in 'DerivedCrossParticipants' folder of the dataset.
+
+		pad process AccelerometerCalibrator --par -p MasterSynced/**/Actigraph*.sensor.csv -output_folder Features --sessions DerivedCrossParticipants/sessions.csv --location_mapping DerivedCrossParticipants/location_mapping.csv -o DerivedCrossParticipants/PostureAndActivity.feature.csv
 """
 
 import os
@@ -54,24 +87,26 @@ def build(**kwargs):
     return FeatureSetPreparer(**kwargs).run_on_file
 
 class FeatureSetPreparer(SensorProcessor):
-    def __init__(self, verbose=True, independent=False, violate=False, output_folder=None, session_file="DerivedCrossParticipants/sessions.csv", 
-    location_mapping_file = "DerivedCrossParticipants/location_mapping.csv", orientation_fix_file='DerivedCrossParticipants/orientation_fix_map.csv', 
+    def __init__(self, verbose=True, independent=False, violate=False, output_folder=None, 
+    sessions=None, 
+    location_mapping =None, 
+    orientation_fixes=None, 
     ws=12800, ss=12800, threshold=0.2, subwins=4, high_cutoff=20):
         SensorProcessor.__init__(self, verbose=verbose, independent=independent, violate=violate)
         self.name = 'AccelerometerFeatureComputer'
         self.output_folder = output_folder
-        self.session_file = session_file
-        self.orientation_fix_file = orientation_fix_file
+        self.sessions = sessions
+        self.orientation_fixes = orientation_fixes
         self.subwins = subwins
         self.sensorFilter = SensorFilter(verbose=verbose, independent=independent, order=4, low_cutoff=None, high_cutoff=high_cutoff)
 
-        self.manualOrientationNormalizer = ManualOrientationNormalizer(verbose=verbose, independent=independent, orientation_fix_file=self.orientation_fix_file)
+        self.manualOrientationNormalizer = ManualOrientationNormalizer(verbose=verbose, independent=independent, orientation_fixes=self.orientation_fixes)
 
-        self.timeFreqFeatureComputer = TimeFreqFeatureComputer(verbose=verbose, independent=independent, session_file=session_file, ws=ws, ss=ss, threshold=threshold)
+        self.timeFreqFeatureComputer = TimeFreqFeatureComputer(verbose=verbose, independent=independent, sessions=sessions, ws=ws, ss=ss, threshold=threshold)
 
-        self.orientationFeatureComputer = OrientationFeatureComputer(verbose=verbose, independent=independent, session_file=session_file, ws=ws, ss=ss, subwins=subwins)
+        self.orientationFeatureComputer = OrientationFeatureComputer(verbose=verbose, independent=independent, sessions=sessions, ws=ws, ss=ss, subwins=subwins)
         
-        self.location_mapping_file = location_mapping_file
+        self.location_mapping = location_mapping
     
     def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
         if combined_data.empty:
@@ -81,7 +116,7 @@ class FeatureSetPreparer(SensorProcessor):
         self.manualOrientationNormalizer.set_meta(self.meta)
         self.timeFreqFeatureComputer.set_meta(self.meta)
         self.orientationFeatureComputer.set_meta(self.meta)
-        st, et = mu.get_st_et(combined_data, self.meta['pid'], self.session_file, st_col=0, et_col=0)
+        st, et = mu.get_st_et(combined_data, self.meta['pid'], self.sessions, st_col=0, et_col=0)
         if self.verbose:
             logger.debug('Session start time: ' + str(st))
             logger.debug('Session stop time: ' + str(et))
@@ -98,7 +133,7 @@ class FeatureSetPreparer(SensorProcessor):
         combined_data_filtered = self.sensorFilter._run_on_data(combined_data, data_start_indicator, data_stop_indicator)
 
         # manual fix orientation
-        if os.path.exists(self.orientation_fix_file):
+        if self.orientation_fixes is not None and os.path.exists(self.orientation_fixes):
             combined_data_prepared = self.manualOrientationNormalizer._run_on_data(combined_data_filtered, data_start_indicator, data_stop_indicator)
         else:
             combined_data_prepared = combined_data_filtered.copy()
@@ -116,7 +151,7 @@ class FeatureSetPreparer(SensorProcessor):
         output_path = mu.generate_output_filepath(self.file, self.output_folder, 'feature', 'PostureAndActivity')
         if not os.path.exists(os.path.dirname(output_path)):
             os.makedirs(os.path.dirname(output_path))
-        location = mu.get_location_from_sid(self.meta['pid'], self.meta['sid'], self.location_mapping_file)
+        location = mu.get_location_from_sid(self.meta['pid'], self.meta['sid'], self.location_mapping)
         result_data.to_csv(output_path, index=False, float_format='%.9f')
         if self.verbose:
             logger.info('Saved feature data to ' + output_path)

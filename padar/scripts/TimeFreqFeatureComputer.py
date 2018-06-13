@@ -36,17 +36,17 @@ def build(**kwargs):
     return TimeFreqFeatureComputer(**kwargs).run_on_file
 
 class TimeFreqFeatureComputer(SensorProcessor):
-    def __init__(self, verbose=True, independent=False, setname='Feature', session_file='DerivedCrossParticipants/sessions.csv', ws=12800, ss=12800, threshold=0.2):
+    def __init__(self, verbose=True, independent=False, setname='Feature', sessions='DerivedCrossParticipants/sessions.csv', ws=12800, ss=12800, threshold=0.2):
         SensorProcessor.__init__(self, verbose=verbose, independent=independent)
         self.name = 'TimeFreqFeatureComputer'
         self.setname = setname
-        self.session_file = session_file
+        self.sessions = sessions
         self.ws = ws
         self.ss = ss
         self.threshold = threshold
     
     def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
-        st, et = mu.get_st_et(combined_data, self.meta['pid'], self.session_file, st_col=0, et_col=0)
+        st, et = mu.get_st_et(combined_data, self.meta['pid'], self.sessions, st_col=0, et_col=0)
         ws = self.ws
         ss = self.ss
         col_names = combined_data.columns[1:]
@@ -120,7 +120,7 @@ class TimeFreqFeatureComputer(SensorProcessor):
         return result_data
 
 
-# def main(file, verbose=True, prev_file=None, next_file=None, session_file="DerivedCrossParticipants/sessions.csv", name='multilocation_2017', ws=12800, ss=12800, threshold=0.2, subwins=4, **kwargs):
+# def main(file, verbose=True, prev_file=None, next_file=None, sessions="DerivedCrossParticipants/sessions.csv", name='multilocation_2017', ws=12800, ss=12800, threshold=0.2, subwins=4, **kwargs):
 #     file = os.path.abspath(file)
 #     if verbose:
 #         print("Compute features for " + file)
@@ -136,12 +136,12 @@ class TimeFreqFeatureComputer(SensorProcessor):
 #     if not os.path.exists(next_file):
 #         next_file = None
 
-#     session_file = os.path.abspath(session_file)
-#     if session_file is None or pid is None:
+#     sessions = os.path.abspath(sessions)
+#     if sessions is None or pid is None:
 #         st = df.iloc[0, 0]
 #         et = df.iloc[df.shape[0]-1, 0]
 #     else:
-#         session_df = pd.read_csv(session_file, parse_dates=[0, 1], infer_datetime_format=True)
+#         session_df = pd.read_csv(sessions, parse_dates=[0, 1], infer_datetime_format=True)
 #         selected_sessions = session_df.loc[session_df['pid'] == pid, :]
 #         if selected_sessions.shape[0] == 0:
 #             st = df.iloc[0, 0]
