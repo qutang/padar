@@ -41,16 +41,14 @@ class AccelerometerCalibrator(SensorProcessor):
 	def __init__(self, verbose=True, independent=True, violate=False, static_chunks=None, output_folder=None):
 		SensorProcessor.__init__(self, verbose=verbose, independent=independent, violate=violate)
 		self.name = 'AccelerometerCalibrator'
-		if static_chunks is None:
-			logger.error('<--static_chunks> option must be provided')
-			exit(1)
-		if output_folder is None:
-			logger.error('<--output_folder> option must be provided')
-			exit(1)
 		self.static_chunks = static_chunks
 		self.output_folder = output_folder
 
 	def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
+		if self.static_chunks is None:
+			logger.warn('static chunks file is not provided, return the original data')
+			return combined_data
+
 		pid = self.meta['pid']
 		sid = self.meta['sid']
 		static_chunks = os.path.abspath(self.static_chunks)
@@ -70,6 +68,9 @@ class AccelerometerCalibrator(SensorProcessor):
 		return calibrated_df
 
 	def _post_process(self, result_data):
+		if self.output_folder is None:
+			logger.warn('output_folder is not provided, no hourly calibrated file will be saved')
+			return pd.DataFrame()
 		output_file = mu.generate_output_filepath(self.file, setname=self.output_folder, newtype='sensor')
 		if not os.path.exists(os.path.dirname(output_file)):
 			os.makedirs(os.path.dirname(output_file))

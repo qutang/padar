@@ -21,12 +21,12 @@ Four class label:
 Usage:
 	Production: 
 		On all participants
-			`mh -r . process spades_lab.ClassLabelAssigner --par --pattern SPADES_*/MasterSynced/**/SPADESInLab*.annotation.csv --setname Preprocessed > DerivedCrossParticipants/Feature_sets/SPADESInLab.class.csv`
+			`mh -r . process spades_lab.ClassLabelAssigner --par --pattern SPADES_*/MasterSynced/**/SPADESInLab*.annotation.csv --output_folder Preprocessed > DerivedCrossParticipants/Feature_sets/SPADESInLab.class.csv`
 		On single participant
-			`mh -r . -p SPADES_1 process spades_lab.ClassLabelAssigner --par --pattern MasterSynced/**/SPADESInLab*.annotation.csv --setname Preprocessed > SPADES_1/Derived/SPADESInLab.class.csv`
+			`mh -r . -p SPADES_1 process spades_lab.ClassLabelAssigner --par --pattern MasterSynced/**/SPADESInLab*.annotation.csv --output_folder Preprocessed > SPADES_1/Derived/SPADESInLab.class.csv`
 
 	Debug:
-		`mh -r . -p SPADES_1 process spades_lab.ClassLabelAssigner --verbose --pattern MasterSynced/**/SPADESInLab*.annotation.csv --setname Preprocessed`
+		`mh -r . -p SPADES_1 process spades_lab.ClassLabelAssigner --verbose --pattern MasterSynced/**/SPADESInLab*.annotation.csv --output_folder Preprocessed`
 """
 
 import os
@@ -36,24 +36,25 @@ from ...api import windowing as mw
 from ...api import utils as mu
 from ...api import date_time as mdt
 from ..BaseProcessor import AnnotationProcessor
+from ...utility import logger
 
 def build(**kwargs):
 	return ClassLabelAssigner(**kwargs).run_on_file
 
 class ClassLabelAssigner(AnnotationProcessor):
-	def __init__(self, verbose=True, violate=False, independent=False, ws=12800, ss=12800, session_file="DerivedCrossParticipants/sessions.csv", setname='Classlabel'):
+	def __init__(self, verbose=True, violate=False, independent=False, ws=12800, ss=12800, sessions="DerivedCrossParticipants/sessions.csv", output_folder=None):
 		AnnotationProcessor.__init__(self, verbose=verbose, violate=False, independent=independent)
 		self.name = 'ClassLabelAssigner'
-		self.setname = setname
-		self.session_file = session_file
+		self.output_folder = output_folder
+		self.sessions = sessions
 		self.ws = ws
 		self.ss = ss
 	
 	def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
-		st, et = mu.get_st_et(combined_data, self.meta['pid'], self.session_file, st_col=1, et_col=2)
+		st, et = mu.get_st_et(combined_data, self.meta['pid'], self.sessions, st_col=1, et_col=2)
 		if self.verbose:
-			print('Session start time: ' + str(st))
-			print('Session stop time: ' + str(et))
+			logger.info('Session start time: ' + str(st))
+			logger.info('Session stop time: ' + str(et))
 		# save current file's start and stop time
 		ws, ss = self.ws, self.ss
 		windows = mw.get_sliding_window_boundaries(st, et, ws, ss)
@@ -84,12 +85,12 @@ class ClassLabelAssigner(AnnotationProcessor):
 		return result_data
 
 	def _post_process(self, result_data):
-		output_path = mu.generate_output_filepath(self.file, self.setname, 'class')
+		output_path = mu.generate_output_filepath(self.file, self.output_folder, 'class')
 		if not os.path.exists(os.path.dirname(output_path)):
 			os.makedirs(os.path.dirname(output_path))
 		result_data.to_csv(output_path, index=False)
 		if self.verbose:
-			print('Saved ' + output_path)
+			logger.info('Saved class labels to ' + output_path)
 		result_data['pid'] = self.meta['pid']
 		result_data['annotator'] = self.meta['sid']
 		return result_data

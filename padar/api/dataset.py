@@ -94,6 +94,7 @@ class M:
         if func is None:
             raise ValueError("You must provide a function to process files")
         entry_files = np.array(glob.glob(pattern, recursive=True))
+        
         # sort by pid, sid, date, hour
         if violate == False:
             pids = np.array(list(map(lambda file: extract_pid(file), entry_files)))
@@ -105,9 +106,12 @@ class M:
             sids = sids[sorted_inds].tolist()
             dates = dates[sorted_inds].tolist()
             hours = hours[sorted_inds].tolist()
+            entry_files = entry_files[sorted_inds].tolist()
             prev_files = self._get_prev_files(entry_files, pids, sids)
             next_files = self._get_next_files(entry_files, pids, sids)
-            entry_files = entry_files[sorted_inds].tolist()
+            # file_df = pd.DataFrame(data={'entry': entry_files, 'prev': prev_files, 'next': next_files})
+            # file_df.to_csv('file_df.csv', index=False)
+            # exit(1)
         else:
             prev_files = [None] * len(entry_files)
             next_files = [None] * len(entry_files)
