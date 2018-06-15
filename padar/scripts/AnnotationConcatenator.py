@@ -1,8 +1,14 @@
 """
-Script simply copy over a file to the new location while keep the mhealth folder structure
+Script to concatenate annotation files
 
-Usage:
-	mh -r . process Copier --verbose --pattern SPADES_*/MasterSynced/**/*.annotation.csv --setname Preprocessed
+Example:
+	1. Concatenate all annotation files for all participants and save the results to `DerivedCrossParticipants` folder
+
+		pad process AnnotationConcatenator -p SPADES_*/MasterSynced/**/*.annotation.csv -o DerivedCrossParticipants/SPADESInLab.annotation.csv
+
+	2. Concatenate all annotation files for SPADES_1 and save the results to `Derived` folder of SPADES_1
+
+		pad -p SPADES_1 process AnnotationConcatenator -p MasterSynced/**/*.annotation.csv -o Derived/SPADESInLab.annotation.csv
 """
 
 from .BaseProcessor import AnnotationProcessor

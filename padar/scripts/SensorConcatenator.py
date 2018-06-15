@@ -15,10 +15,10 @@ def build(**kwargs):
 	return SensorConcatenator(**kwargs).run_on_file
 
 class SensorConcatenator(SensorProcessor):
-	def __init__(self, verbose=True, independent=True, violate=False, location_mapping_file=None):
+	def __init__(self, verbose=True, independent=True, violate=False, location_mapping=None):
 		SensorProcessor.__init__(self, verbose=verbose, independent=independent, violate=violate)
 		self.name = 'SensorConcatenator'
-		self.location_mapping_file = location_mapping_file
+		self.location_mapping = location_mapping
 
 	def _run_on_data(self, combined_data, data_start_indicator, data_stop_indicator):
 		# combined_data is actually the filename
