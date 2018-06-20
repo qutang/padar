@@ -18,15 +18,11 @@ Four class label:
 	Sedentary: sitting, standing and lying
 	Others: the rest
 
-Usage:
-	Production: 
-		On all participants
-			`mh -r . process spades_lab.ClassLabelAssigner --par --pattern SPADES_*/MasterSynced/**/SPADESInLab*.annotation.csv --output_folder Preprocessed > DerivedCrossParticipants/Feature_sets/SPADESInLab.class.csv`
-		On single participant
-			`mh -r . -p SPADES_1 process spades_lab.ClassLabelAssigner --par --pattern MasterSynced/**/SPADESInLab*.annotation.csv --output_folder Preprocessed > SPADES_1/Derived/SPADESInLab.class.csv`
-
-	Debug:
-		`mh -r . -p SPADES_1 process spades_lab.ClassLabelAssigner --verbose --pattern MasterSynced/**/SPADESInLab*.annotation.csv --output_folder Preprocessed`
+Examples:
+	On all participants
+		pad process spades_lab.ClassLabelAssigner --par -p SPADES_*/MasterSynced/**/SPADESInLab*.annotation.csv --output_folder Preprocessed > DerivedCrossParticipants/SPADESInLab.class.csv
+	On single participant
+		pad -p SPADES_1 process spades_lab.ClassLabelAssigner --par -p MasterSynced/**/SPADESInLab*.annotation.csv --output_folder Preprocessed > SPADES_1/Derived/SPADESInLab.class.csv
 """
 
 import os
